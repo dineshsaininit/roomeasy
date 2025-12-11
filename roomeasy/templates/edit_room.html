@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; margin-top: 40px;">
+    
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+        <h2>Edit Property</h2>
+        <a href="/profile" style="color: var(--dark); font-weight: 600; text-decoration: underline; font-size: 14px;">Cancel</a>
+    </div>
+
+    <div style="background: white; border: 1px solid #ddd; padding: 32px; border-radius: var(--radius); box-shadow: var(--shadow);">
+        <form method="POST">
+            <label>Property Title</label>
+            <input type="text" name="title" value="{{ room.title }}" required>
+
+            <label>Address / Locality</label>
+            <input type="text" name="address" value="{{ room.address }}" required>
+
+            <label>Monthly Rent ($)</label>
+            <input type="number" name="price" value="{{ room.price_per_month }}" step="0.01" required>
+
+            <label>Image URL</label>
+            <input type="text" name="image_url" value="{{ room.image_url }}" required>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="margin-bottom: 10px; display: block;">Current Image Preview:</label>
+                <img src="{{ room.image_url }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #eee;">
+            </div>
+
+            <label>Description</label>
+            <textarea name="description" rows="6" required style="width: 100%; padding: 14px; border: 1px solid #b0b0b0; border-radius: 8px; font-family: inherit;">{{ room.description }}</textarea>
+
+            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 24px; padding: 16px; font-size: 16px; cursor: pointer;">Save Changes</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

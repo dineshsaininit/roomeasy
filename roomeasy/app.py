@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
@@ -32,14 +32,86 @@ def login_required(f):
 
 @app.route('/')
 def index():
+    search_query = request.args.get('q', '').strip()
+    showing_recommendations = False
+    
     try:
-        response = supabase.table('rooms').select("*").eq('status', 'available').execute()
-        rooms = response.data
+        # Base query for available rooms
+        base_query = supabase.table('rooms').select("*").eq('status', 'available')
+        
+        if search_query:
+            # SEARCH LOGIC: Filter by address OR title (case-insensitive)
+            # Using PostgREST syntax for OR with ILIKE
+            filter_condition = f"address.ilike.%{search_query}%,title.ilike.%{search_query}%"
+            response = base_query.or_(filter_condition).execute()
+            rooms = response.data
+            
+            # RECOMMENDATION SYSTEM FALLBACK
+            if not rooms:
+                # If no exact matches found, fetch "recommended" rooms (e.g., all available ones)
+                # In a real system, this would be smarter (e.g., similar category)
+                response = supabase.table('rooms').select("*").eq('status', 'available').limit(12).execute()
+                rooms = response.data
+                showing_recommendations = True
+        else:
+            # No search, show all
+            response = base_query.execute()
+            rooms = response.data
+        
+        # Check which rooms the user has liked
+        liked_room_ids = []
+        if 'user' in session:
+            user_id = session['user']
+            wishlist_res = supabase.table('wishlist').select('room_id').eq('user_id', user_id).execute()
+            liked_room_ids = [item['room_id'] for item in wishlist_res.data]
+
     except Exception as e:
         rooms = []
+        liked_room_ids = []
         print(f"Error fetching rooms: {e}")
         
-    return render_template('index.html', rooms=rooms)
+    return render_template('index.html', 
+                         rooms=rooms, 
+                         liked_room_ids=liked_room_ids, 
+                         search_query=search_query,
+                         showing_recommendations=showing_recommendations)
+
+@app.route('/wishlist')
+@login_required
+def wishlist():
+    user_id = session['user']
+    try:
+        wishlist_res = supabase.table('wishlist').select('room_id').eq('user_id', user_id).execute()
+        room_ids = [item['room_id'] for item in wishlist_res.data]
+        
+        if room_ids:
+            rooms_res = supabase.table('rooms').select('*').in_('id', room_ids).execute()
+            rooms = rooms_res.data
+        else:
+            rooms = []
+            
+        return render_template('wishlist.html', rooms=rooms)
+    except Exception as e:
+        print(f"Error fetching wishlist: {e}")
+        flash("Could not load wishlist", "error")
+        return redirect(url_for('index'))
+
+@app.route('/toggle_wishlist/<int:room_id>', methods=['POST'])
+def toggle_wishlist(room_id):
+    if 'user' not in session:
+        return jsonify({'status': 'error', 'message': 'Login required'}), 401
+    
+    user_id = session['user']
+    try:
+        existing = supabase.table('wishlist').select('*').eq('user_id', user_id).eq('room_id', room_id).execute()
+        if existing.data:
+            supabase.table('wishlist').delete().eq('user_id', user_id).eq('room_id', room_id).execute()
+            return jsonify({'status': 'removed'})
+        else:
+            supabase.table('wishlist').insert({'user_id': user_id, 'room_id': room_id}).execute()
+            return jsonify({'status': 'added'})
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -50,14 +122,11 @@ def signup():
         profile_image = request.form.get('profile_image_url')
 
         try:
-            # 1. Check if email already exists
             existing_user = supabase.table('user_profiles').select("*").eq('email', email).execute()
-            
             if existing_user.data:
                 flash("Email already registered. Please login.", "error")
                 return redirect(url_for('login'))
 
-            # 2. Manual Insert into user_profiles
             new_user_data = {
                 "full_name": full_name,
                 "email": email,
@@ -65,15 +134,11 @@ def signup():
                 "role": "user",
                 "profile_image_url": profile_image if profile_image else ""
             }
-            
             supabase.table('user_profiles').insert(new_user_data).execute()
-            
             flash("Signup successful! You can now login.", "success")
             return redirect(url_for('login'))
-                
         except Exception as e:
             flash(f"Signup Error: {str(e)}", "error")
-            
     return render_template('signup.html')
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -83,28 +148,19 @@ def login():
         password = request.form.get('password')
 
         try:
-            # 1. Manual Query: Match Email AND Password
             response = supabase.table('user_profiles').select("*").eq('email', email).eq('password', password).execute()
-            
-            # 2. Check if a user was found
             if response.data and len(response.data) > 0:
                 user = response.data[0]
-                
-                # 3. Set Session
                 session['user'] = user['id']
                 session['name'] = user['full_name']
                 session['role'] = user['role']
-                # Store profile image in session for header access
                 session['profile_image'] = user.get('profile_image_url')
-                
                 flash(f"Welcome back, {user['full_name']}!", "success")
                 return redirect(url_for('index'))
             else:
                 flash("Invalid email or password", "error")
-
         except Exception as e:
             flash(f"Login Error: {str(e)}", "error")
-
     return render_template('login.html')
 
 @app.route('/logout')
@@ -118,12 +174,11 @@ def logout():
 def profile():
     user_id = session['user']
     try:
-        # Fetch user details
         user_response = supabase.table('user_profiles').select("*").eq('id', user_id).single().execute()
         user = user_response.data
         
-        # Fetch rooms posted by this user
-        rooms_response = supabase.table('rooms').select("*").eq('owner_id', user_id).execute()
+        # Order by created_at desc to show newest first
+        rooms_response = supabase.table('rooms').select("*").eq('owner_id', user_id).order('created_at', desc=True).execute()
         user_rooms = rooms_response.data
         
         return render_template('profile.html', user=user, rooms=user_rooms)
@@ -150,7 +205,6 @@ def upload():
             "image_url": image_url,
             "status": "available"
         }
-
         try:
             supabase.table('rooms').insert(data).execute()
             flash("Room uploaded successfully!", "success")
@@ -160,16 +214,74 @@ def upload():
 
     return render_template('upload.html')
 
+@app.route('/edit_room/<int:room_id>', methods=['GET', 'POST'])
+@login_required
+def edit_room(room_id):
+    # 1. Fetch room & Verify Owner
+    try:
+        response = supabase.table('rooms').select("*").eq('id', room_id).single().execute()
+        room = response.data
+    except Exception as e:
+        flash("Room not found.", "error")
+        return redirect(url_for('profile'))
+
+    # Check ownership
+    if str(room['owner_id']) != str(session['user']):
+        flash("You can only edit your own rooms.", "error")
+        return redirect(url_for('profile'))
+
+    # 2. Handle Update
+    if request.method == 'POST':
+        try:
+            update_data = {
+                "title": request.form.get('title'),
+                "address": request.form.get('address'),
+                "price_per_month": float(request.form.get('price')),
+                "description": request.form.get('description'),
+                "image_url": request.form.get('image_url')
+            }
+            supabase.table('rooms').update(update_data).eq('id', room_id).execute()
+            flash("Room updated successfully!", "success")
+            return redirect(url_for('profile'))
+        except Exception as e:
+            flash(f"Error updating room: {e}", "error")
+
+    return render_template('edit_room.html', room=room)
+
+@app.route('/delete_room/<int:room_id>', methods=['POST'])
+@login_required
+def delete_room(room_id):
+    try:
+        # Fetch room to check ownership
+        response = supabase.table('rooms').select("*").eq('id', room_id).single().execute()
+        room = response.data
+        
+        # Check ownership
+        if str(room['owner_id']) != str(session['user']):
+            flash("Unauthorized action.", "error")
+            return redirect(url_for('profile'))
+
+        # Delete related items first (bookings and wishlist) to prevent foreign key errors
+        supabase.table('bookings').delete().eq('room_id', room_id).execute()
+        supabase.table('wishlist').delete().eq('room_id', room_id).execute()
+        
+        # Delete the room
+        supabase.table('rooms').delete().eq('id', room_id).execute()
+        
+        flash("Room deleted successfully.", "info")
+    except Exception as e:
+        flash(f"Error deleting room: {e}", "error")
+        
+    return redirect(url_for('profile'))
+
 @app.route('/room/<int:room_id>')
 def room_details(room_id):
     try:
         response = supabase.table('rooms').select("*").eq('id', room_id).single().execute()
         room = response.data
-        
         full_rent = float(room['price_per_month'])
         lock_amount = round(full_rent * 0.05, 2)
         visit_fee = 50 
-        
         return render_template('room_details.html', room=room, lock_amount=lock_amount, visit_fee=visit_fee)
     except Exception as e:
         flash("Room not found.", "error")
@@ -190,10 +302,8 @@ def book_room(room_id):
     
     try:
         supabase.table('bookings').insert(booking_data).execute()
-        
         if booking_type in ['full', 'lock']:
              supabase.table('rooms').update({"status": "booked"}).eq("id", room_id).execute()
-             
         flash(f"Booking Successful! Type: {booking_type}", "success")
         return redirect(url_for('index'))
     except Exception as e:

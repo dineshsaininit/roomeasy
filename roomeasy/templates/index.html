@@ -40,21 +40,85 @@
     .card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
     .card:hover .card-img { transform: scale(1.05); }
 
+    /* --- Like Button & Cool Animation --- */
     .favorite-btn {
         position: absolute; top: 12px; right: 12px; background: transparent;
-        border: none; color: rgba(255,255,255,0.7); font-size: 24px; z-index: 2; cursor: pointer;
+        border: none; color: rgba(0, 0, 0, 0.5); font-size: 24px; z-index: 10; cursor: pointer;
+        transition: color 0.1s;
+        -webkit-text-stroke: 1px white; /* Outline */
+        display: flex; align-items: center; justify-content: center;
+        width: 40px; height: 40px;
     }
-    .favorite-btn:hover { color: white; transform: scale(1.1); }
+
+    /* Filled State */
+    .favorite-btn.liked { 
+        color: #ff385c; 
+        opacity: 1; 
+        -webkit-text-stroke: 0;
+    }
+    
+    /* The Bounce Animation (Springy) */
+    @keyframes heart-bounce {
+        0%   { transform: scale(1); }
+        40%  { transform: scale(1.6); }
+        70%  { transform: scale(0.85); }
+        100% { transform: scale(1); }
+    }
+
+    /* Apply animations when .animating class is present */
+    .favorite-btn.animating i {
+        animation: heart-bounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* --- Splash Particle Animation --- */
+    .particle-heart {
+        position: absolute;
+        top: 32px; /* Starts at the center of the button */
+        right: 32px;
+        font-size: 10px;
+        pointer-events: none; /* Let clicks pass through */
+        z-index: 5;
+        opacity: 0;
+    }
+
+    /* The Splash/Fall Animation */
+    @keyframes particle-drop {
+        0% {
+            transform: translate(0, 0) scale(1);
+            opacity: 1;
+        }
+        50% {
+            opacity: 1;
+        }
+        100% {
+            /* Variables --tx and --ty set in JS */
+            transform: translate(var(--tx), var(--ty)) scale(0);
+            opacity: 0;
+        }
+    }
+
+    /* --- Search Feedback Styles --- */
+    .search-feedback {
+        max-width: 1800px; margin: 0 auto; padding: 20px 48px 0;
+    }
+    .recommendation-banner {
+        background-color: #f7f7f7;
+        border-radius: 12px;
+        padding: 16px 24px;
+        margin-bottom: 20px;
+        border-left: 5px solid var(--primary);
+    }
+    .recommendation-banner h3 { font-size: 1.1rem; margin-bottom: 4px; }
+    .recommendation-banner p { color: var(--gray); font-size: 0.95rem; }
 
     .card-info h3 { font-size: 15px; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .card-info p { font-size: 14px; color: var(--gray); margin-bottom: 2px; }
     .price { margin-top: 6px; font-size: 15px; font-weight: 600; }
     .price span { font-weight: 400; }
     
-    .rating { position: absolute; top: 0; right: 0; display: flex; gap: 4px; font-size: 14px; align-items: center; }
-
     @media (max-width: 768px) {
         .categories, .listings-container { padding-left: 24px; padding-right: 24px; }
+        .search-feedback { padding-left: 24px; padding-right: 24px; }
     }
 </style>
 {% endblock %}
@@ -72,28 +136,44 @@
     <div class="category-item"><i class="fas fa-city"></i><span>Top cities</span></div>
 </div>
 
+<!-- Search Results Feedback -->
+{% if search_query %}
+<div class="search-feedback">
+    {% if showing_recommendations %}
+        <div class="recommendation-banner">
+            <h3>No results found for "{{ search_query }}"</h3>
+            <p>We couldn't find exact matches, but here are some recommended properties you might like:</p>
+        </div>
+    {% else %}
+        <h2 style="font-size: 1.5rem; margin-bottom: 10px;">Results for "{{ search_query }}"</h2>
+    {% endif %}
+</div>
+{% endif %}
+
 <!-- Main Listings Grid -->
 <div class="listings-container">
     {% for room in rooms %}
     <a href="/room/{{ room.id }}" class="card">
         <div class="image-container">
-            <button class="favorite-btn"><i class="far fa-heart"></i></button>
-            <!-- Fallback image logic included directly in img tag -->
+            <!-- 
+                1. We use event.preventDefault() so clicking the heart doesn't open the room page.
+                2. We check if room.id is in liked_room_ids to apply the 'liked' class and correct icon.
+            -->
+            <button class="favorite-btn {% if room.id in liked_room_ids %}liked{% endif %}" 
+                    onclick="toggleLike(event, {{ room.id }})">
+                <i class="{% if room.id in liked_room_ids %}fas{% else %}fas{% endif %} fa-heart"></i>
+            </button>
             <img src="{{ room.image_url }}" alt="{{ room.title }}" class="card-img" onerror="this.src='https://via.placeholder.com/600x600?text=No+Image'">
         </div>
         
         <div class="card-info">
-            <!-- Title/Location Row -->
             <div style="display:flex; justify-content:space-between;">
                 <h3>{{ room.address }}</h3>
-                <div class="rating"><i class="fas fa-star"></i> 4.9</div>
             </div>
             
-            <!-- Description -->
             <p>{{ room.title }}</p>
             <p>Available now</p>
             
-            <!-- Price -->
             <div class="price">${{ room.price_per_month }} <span>night</span></div>
         </div>
     </a>
@@ -105,4 +185,97 @@
     </div>
     {% endfor %}
 </div>
+
+<script>
+async function toggleLike(event, roomId) {
+    // 1. Prevent Navigation
+    event.preventDefault();
+    event.stopPropagation();
+    
+    const btn = event.currentTarget;
+    const wasLiked = btn.classList.contains('liked');
+    
+    // 2. Optimistic UI Update
+    if (wasLiked) {
+        btn.classList.remove('liked');
+    } else {
+        btn.classList.add('liked');
+        
+        // Bounce Animation
+        btn.classList.remove('animating');
+        void btn.offsetWidth; // Force Reflow
+        btn.classList.add('animating');
+        
+        // --- TRIGGER SPLASH ANIMATION ---
+        createHeartSplash(btn);
+    }
+
+    // 3. Send Network Request
+    try {
+        const response = await fetch(`/toggle_wishlist/${roomId}`, { method: 'POST' });
+        
+        if (response.status === 401) {
+            if (wasLiked) btn.classList.add('liked');
+            else btn.classList.remove('liked');
+            btn.classList.remove('animating');
+
+            alert("Please login to like properties!");
+            window.location.href = "/login";
+            return;
+        }
+
+        const data = await response.json();
+        
+        if (data.status === 'added' && !btn.classList.contains('liked')) {
+             btn.classList.add('liked');
+        } else if (data.status === 'removed' && btn.classList.contains('liked')) {
+             btn.classList.remove('liked');
+        }
+
+    } catch (error) {
+        console.error('Error toggling like:', error);
+        if (wasLiked) btn.classList.add('liked');
+        else btn.classList.remove('liked');
+        btn.classList.remove('animating');
+    }
+}
+
+function createHeartSplash(btn) {
+    const container = btn.closest('.image-container');
+    // Colorful palette
+    const colors = ['#ff385c', '#e00b41', '#ff9cb3', '#ffc107', '#4caf50', '#2196f3', '#9c27b0'];
+    
+    // Create particles
+    for (let i = 0; i < 15; i++) {
+        const particle = document.createElement('i');
+        particle.classList.add('fas', 'fa-heart', 'particle-heart');
+        
+        // Random Color
+        particle.style.color = colors[Math.floor(Math.random() * colors.length)];
+        
+        // Random Size
+        const size = Math.random() * 12 + 8; // 8px to 20px
+        particle.style.fontSize = `${size}px`;
+        
+        // Physics for "Splash Down"
+        // x: random spread left/right (-40px to 40px)
+        // y: random drop down (20px to 80px)
+        const tx = (Math.random() * 100) - 50; 
+        const ty = (Math.random() * 60) + 20; 
+        
+        particle.style.setProperty('--tx', `${tx}px`);
+        particle.style.setProperty('--ty', `${ty}px`);
+        
+        // Random animation duration
+        particle.style.animation = `particle-drop ${0.6 + Math.random() * 0.4}s ease-out forwards`;
+        
+        container.appendChild(particle);
+        
+        // Cleanup
+        setTimeout(() => {
+            particle.remove();
+        }, 1000);
+    }
+}
+</script>
 {% endblock %}

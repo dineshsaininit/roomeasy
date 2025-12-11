@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    .listings-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+        gap: 40px 24px;
+        padding: 24px 48px;
+        max-width: 1800px;
+        margin: 0 auto;
+    }
+    
+    .card { cursor: pointer; text-decoration: none; color: inherit; display: block; position: relative; }
+    
+    .image-container {
+        position: relative; aspect-ratio: 20/19; border-radius: 12px;
+        overflow: hidden; background: #eee; margin-bottom: 12px;
+    }
+    
+    .card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
+    .card:hover .card-img { transform: scale(1.05); }
+
+    .card-info h3 { font-size: 15px; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-info p { font-size: 14px; color: #717171; margin-bottom: 2px; }
+    .price { margin-top: 6px; font-size: 15px; font-weight: 600; }
+    
+    .page-header {
+        padding: 40px 48px 10px;
+        max-width: 1800px;
+        margin: 0 auto;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Your Wishlist</h1>
+    <p style="color: #717171;">Properties you've saved.</p>
+</div>
+
+<div class="listings-container">
+    {% for room in rooms %}
+    <a href="/room/{{ room.id }}" class="card">
+        <div class="image-container">
+            <!-- On wishlist page, we show filled heart. Clicking it removes it from wishlist. -->
+            <button class="favorite-btn" style="position: absolute; top: 12px; right: 12px; border:none; background:transparent; z-index:2; color: #ff385c; font-size: 24px; cursor: pointer;" 
+                    onclick="removeFromWishlist(event, {{ room.id }})">
+                <i class="fas fa-heart"></i>
+            </button>
+            <img src="{{ room.image_url }}" alt="{{ room.title }}" class="card-img" onerror="this.src='https://via.placeholder.com/600x600?text=No+Image'">
+        </div>
+        
+        <div class="card-info">
+            <h3>{{ room.address }}</h3>
+            <p>{{ room.title }}</p>
+            <div class="price">${{ room.price_per_month }} <span>night</span></div>
+        </div>
+    </a>
+    {% else %}
+    <div style="grid-column: 1/-1; text-align: center; padding: 50px;">
+        <h3>No saved properties.</h3>
+        <p>Go to the homepage and click the heart icon to save rooms!</p>
+        <a href="/" class="btn-primary" style="display:inline-block; margin-top:20px; text-decoration:none;">Explore Rooms</a>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+async function removeFromWishlist(event, roomId) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if(!confirm("Remove from wishlist?")) return;
+
+    try {
+        const response = await fetch(`/toggle_wishlist/${roomId}`, { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.status === 'removed') {
+            // Remove the card from the UI immediately
+            const card = event.target.closest('.card');
+            if (card) card.remove();
+            
+            // If no cards left, reload to show empty state
+            if (document.querySelectorAll('.card').length === 0) {
+                location.reload();
+            }
+        }
+    } catch (error) {
+        console.error('Error removing:', error);
+    }
+}
+</script>
+{% endblock %}

@@ -31,23 +31,74 @@
 
     .logo { color: var(--primary); font-size: 24px; font-weight: bold; text-decoration: none; display: flex; align-items: center; gap: 8px; }
 
-    /* Search Bar (Centered) */
+    /* --- Search Bar Redesign --- */
     .search-bar {
-      display: flex; align-items: center; background: var(--white);
-      border: 1px solid #dddddd; border-radius: 40px;
-      padding: 8px 8px 8px 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.08);
-      transition: 0.2s; cursor: pointer; min-width: 300px;
+      display: flex; 
+      align-items: center; 
+      background: var(--white);
+      border: 1px solid #dddddd; 
+      border-radius: 50px; /* Pill shape */
+      padding: 4px 6px 4px 24px; /* Reduced vertical padding */
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smooth expanding animation */
+      cursor: text; 
+      width: 400px; /* Initial wider width */
+      height: 48px; /* Fixed height for consistency */
     }
-    .search-bar:hover { box-shadow: 0 2px 4px rgba(0,0,0,0.18); }
-    .search-text { font-size: 0.9rem; font-weight: 600; color: var(--dark); margin-right: 10px; }
+    
+    .search-bar:hover { 
+        box-shadow: 0 2px 4px rgba(0,0,0,0.18); 
+        border-color: #b0b0b0;
+    }
+    
+    /* Animation: Expand when clicked */
+    .search-bar:focus-within {
+        width: 550px; /* Expands width */
+        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+        border-color: var(--dark);
+    }
+    
+    .search-text { 
+        font-size: 15px; 
+        font-weight: 500; 
+        color: var(--dark); 
+        margin-right: 12px; 
+        border: none;
+        outline: none;
+        background: transparent;
+        width: 100%;
+        flex-grow: 1;
+        height: 100%;
+    }
+    
     .search-btn {
-      background: var(--primary); color: white; width: 32px; height: 32px;
-      border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none;
+      background: var(--primary); 
+      color: white; 
+      width: 38px; 
+      height: 38px;
+      border-radius: 50%; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      border: none; 
+      cursor: pointer;
+      font-size: 14px;
+      transition: transform 0.2s ease;
+    }
+    
+    .search-bar:focus-within .search-btn {
+        transform: scale(1.05); /* Subtle pop on focus */
     }
 
     /* Right Navigation (User Menu) */
-    .nav-links { display: flex; align-items: center; gap: 20px; }
+    .nav-links { display: flex; align-items: center; gap: 24px; }
     .nav-links a { text-decoration: none; color: var(--dark); font-weight: 600; font-size: 14px; }
+    
+    /* New Nav Item Styling for Icons */
+    .nav-item { display: flex; align-items: center; gap: 8px; transition: color 0.2s ease; }
+    .nav-item:hover { color: var(--primary); }
+    .nav-item i { font-size: 18px; }
+
     .btn-primary { background: var(--primary); color: white; padding: 10px 20px; border-radius: 8px; transition: 0.2s; text-decoration: none; border: none; font-size: 14px; font-weight: 600; }
     .btn-primary:hover { opacity: 0.9; }
 
@@ -63,11 +114,26 @@
         font-size: 16px;
         color: var(--dark);
     }
+    
+    /* Reset search input to not use global form styles */
+    .search-bar input[type=text] {
+        border: none;
+        padding: 0;
+        margin: 0;
+        border-radius: 0;
+    }
+
     input:focus, select:focus, textarea:focus {
         outline: none;
         border-color: var(--dark);
         box-shadow: 0 0 0 2px rgba(34, 34, 34, 0.1);
     }
+    /* Reset for search bar input focus */
+    .search-bar input:focus {
+        box-shadow: none;
+        border: none;
+    }
+
     label {
         font-size: 14px;
         font-weight: 600;
@@ -102,17 +168,27 @@
         <img src="/static/images/newlogoroomeasy.png" alt="RoomEasy Logo" style="height: 10rem; object-fit: contain;">
     </a>
 
-    <!-- Search Bar -->
-    <div class="search-bar">
-        <div class="search-text">Anywhere | Any week | Add guests</div>
-        <button class="search-btn"><i class="fas fa-search"></i></button>
-    </div>
+    <!-- Search Bar Form -->
+    <form action="/" method="GET" class="search-bar">
+        <input type="text" name="q" class="search-text" placeholder="Search by location..." value="{{ request.args.get('q', '') }}" autocomplete="off">
+        <button type="submit" class="search-btn"><i class="fas fa-search"></i></button>
+    </form>
 
     <!-- Navigation -->
     <div class="nav-links">
       {% if session.get('user') %}
-        <a href="/upload">Switch to Hosting</a>
-        <a href="/logout">Logout</a>
+        <a href="/wishlist" class="nav-item">
+            <i class="far fa-heart"></i>
+            <span>Wishlist</span>
+        </a>
+        <a href="/upload" class="nav-item">
+            <i class="fas fa-home"></i>
+            <span>Switch to Hosting</span>
+        </a>
+        <a href="/logout" class="nav-item">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </a>
         <!-- User Profile Icon / Image -->
         <a href="/profile" title="View Profile" style="text-decoration: none;">
             {% if session.get('profile_image') %}
