@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RoomRental</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #ff385c;
+      --dark: #222222;
+      --gray: #717171;
+      --light-gray: #f7f7f7;
+      --white: #ffffff;
+      --radius: 12px;
+      --shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--white);
+      color: var(--dark);
+      padding-bottom: 80px;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--white);
+      padding: 15px 24px;
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      color: var(--primary);
+      font-weight: bold;
+      font-size: 24px;
+      text-decoration: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--dark);
+      font-weight: 500;
+      margin-left: 20px;
+      font-size: 14px;
+    }
+
+    .nav-links .btn-primary {
+      background: var(--primary);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 20px;
+    }
+
+    .flash-msg {
+      padding: 10px;
+      text-align: center;
+      margin: 10px;
+      border-radius: 8px;
+    }
+
+    .flash-success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .flash-error {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+      {
+      % block extra_css %
+    }
+
+      {
+      % endblock %
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <a href="/" class="logo"><i class="fab fa-airbnb"></i> RoomRental</a>
+
+    <div class="nav-links">
+      {% if session.get('user') %}
+      <a href="/upload">Upload Room</a>
+      <a href="/logout">Logout</a>
+      <a href="#" class="btn-primary">My Profile</a>
+      {% else %}
+      <a href="/login">Log in</a>
+      <a href="/login" class="btn-primary">Sign up</a>
+      {% endif %}
+    </div>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  {% for category, message in messages %}
+  <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+  {% endfor %}
+  {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+
+</body>
+
+</html>

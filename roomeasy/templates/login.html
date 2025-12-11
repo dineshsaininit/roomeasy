@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="max-width: 500px; margin-top: 50px;">
+    <div style="border: 1px solid #ddd; padding: 30px; border-radius: var(--radius); box-shadow: var(--shadow);">
+        <h2 style="text-align: center; margin-bottom: 20px;">Welcome</h2>
+        
+        <form method="POST">
+            <label>Email</label>
+            <input type="email" name="email" required placeholder="Enter your email">
+            
+            <label>Password</label>
+            <input type="password" name="password" required placeholder="Enter password">
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" name="action" value="login" class="btn-primary" style="flex: 1; border:none; background: var(--primary); color: white; padding: 12px; border-radius: 8px;">Login</button>
+                <button type="submit" name="action" value="signup" style="flex: 1; background: white; border: 1px solid var(--dark); padding: 12px; border-radius: 8px;">Sign Up</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
