@@ -1,26 +1,37 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container" style="max-width: 500px; margin-top: 50px;">
-    <div style="border: 1px solid #ddd; padding: 30px; border-radius: var(--radius); box-shadow: var(--shadow);">
-        <h2 style="text-align: center; margin-bottom: 20px;">Create Account</h2>
+<div class="container" style="display: flex; justify-content: center; align-items: center; min-height: 70vh;">
+    <div style="width: 100%; max-width: 450px; padding: 32px; border: 1px solid #dddddd; border-radius: 12px; box-shadow: var(--shadow); background: white;">
+        
+        <h2 style="text-align: center; margin-bottom: 24px;">Create an account</h2>
         
         <form method="POST">
             <label>Full Name</label>
-            <input type="text" name="full_name" required placeholder="John Doe">
+            <input type="text" name="full_name" required placeholder="e.g. John Doe">
 
             <label>Email</label>
             <input type="email" name="email" required placeholder="name@example.com">
             
             <label>Password</label>
             <input type="password" name="password" required placeholder="Create a password">
+
+            <label>Profile Photo URL</label>
+            <input type="text" name="profile_image_url" placeholder="https://example.com/my-photo.jpg">
             
-            <button type="submit" class="btn-primary" style="width: 100%; border:none; background: var(--primary); color: white; padding: 12px; border-radius: 8px; margin-top: 20px;">Sign Up</button>
+            <p style="font-size: 12px; color: var(--gray); margin-bottom: 20px;">
+                By selecting <strong>Agree and continue</strong>, I agree to RoomEasy's Terms of Service and Privacy Policy.
+            </p>
+
+            <button type="submit" class="btn-primary" style="width: 100%; padding: 14px; font-size: 16px; cursor: pointer;">Agree and continue</button>
         </form>
 
-        <p style="text-align: center; margin-top: 20px; color: var(--gray);">
-            Already have an account? <a href="/login" style="color: var(--primary);">Login here</a>
-        </p>
+        <hr style="margin: 24px 0; border: 0; border-top: 1px solid #dddddd;">
+
+        <div style="text-align: center; font-size: 14px;">
+            <span style="color: var(--gray);">Already have an account?</span> 
+            <a href="/login" style="color: var(--dark); font-weight: 600; text-decoration: underline;">Log in</a>
+        </div>
     </div>
 </div>
 {% endblock %}

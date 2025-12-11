@@ -1,23 +1,27 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container" style="max-width: 500px; margin-top: 50px;">
-    <div style="border: 1px solid #ddd; padding: 30px; border-radius: var(--radius); box-shadow: var(--shadow);">
-        <h2 style="text-align: center; margin-bottom: 20px;">Welcome Back</h2>
+<div class="container" style="display: flex; justify-content: center; align-items: center; min-height: 70vh;">
+    <div style="width: 100%; max-width: 450px; padding: 32px; border: 1px solid #dddddd; border-radius: 12px; box-shadow: var(--shadow); background: white;">
+        
+        <h2 style="text-align: center; margin-bottom: 24px;">Welcome back</h2>
         
         <form method="POST">
             <label>Email</label>
             <input type="email" name="email" required placeholder="Enter your email">
             
             <label>Password</label>
-            <input type="password" name="password" required placeholder="Enter password">
+            <input type="password" name="password" required placeholder="Enter your password">
             
-            <button type="submit" class="btn-primary" style="width: 100%; border:none; background: var(--primary); color: white; padding: 12px; border-radius: 8px; margin-top: 20px;">Login</button>
+            <button type="submit" class="btn-primary" style="width: 100%; padding: 14px; font-size: 16px; margin-top: 10px; cursor: pointer;">Log in</button>
         </form>
 
-        <p style="text-align: center; margin-top: 20px; color: var(--gray);">
-            Don't have an account? <a href="/signup" style="color: var(--primary);">Sign up</a>
-        </p>
+        <hr style="margin: 24px 0; border: 0; border-top: 1px solid #dddddd;">
+
+        <div style="text-align: center; font-size: 14px;">
+            <span style="color: var(--gray);">Don't have an account?</span> 
+            <a href="/signup" style="color: var(--dark); font-weight: 600; text-decoration: underline;">Sign up</a>
+        </div>
     </div>
 </div>
 {% endblock %}

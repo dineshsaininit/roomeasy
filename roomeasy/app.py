@@ -47,6 +47,7 @@ def signup():
         full_name = request.form.get('full_name')
         email = request.form.get('email')
         password = request.form.get('password')
+        profile_image = request.form.get('profile_image_url')
 
         try:
             # 1. Check if email already exists
@@ -60,8 +61,9 @@ def signup():
             new_user_data = {
                 "full_name": full_name,
                 "email": email,
-                "password": password, # Storing directly as requested
-                "role": "user"
+                "password": password, 
+                "role": "user",
+                "profile_image_url": profile_image if profile_image else ""
             }
             
             supabase.table('user_profiles').insert(new_user_data).execute()
@@ -92,6 +94,8 @@ def login():
                 session['user'] = user['id']
                 session['name'] = user['full_name']
                 session['role'] = user['role']
+                # Store profile image in session for header access
+                session['profile_image'] = user.get('profile_image_url')
                 
                 flash(f"Welcome back, {user['full_name']}!", "success")
                 return redirect(url_for('index'))
@@ -108,6 +112,24 @@ def logout():
     session.clear()
     flash("You have been logged out.", "info")
     return redirect(url_for('index'))
+
+@app.route('/profile')
+@login_required
+def profile():
+    user_id = session['user']
+    try:
+        # Fetch user details
+        user_response = supabase.table('user_profiles').select("*").eq('id', user_id).single().execute()
+        user = user_response.data
+        
+        # Fetch rooms posted by this user
+        rooms_response = supabase.table('rooms').select("*").eq('owner_id', user_id).execute()
+        user_rooms = rooms_response.data
+        
+        return render_template('profile.html', user=user, rooms=user_rooms)
+    except Exception as e:
+        flash(f"Error fetching profile: {e}", "error")
+        return redirect(url_for('index'))
 
 @app.route('/upload', methods=['GET', 'POST'])
 @login_required

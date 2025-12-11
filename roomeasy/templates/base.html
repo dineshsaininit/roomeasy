@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RoomRental</title>
+  <title>RoomEasy</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  
   <style>
     :root {
       --primary: #ff385c;
@@ -14,130 +14,134 @@
       --light-gray: #f7f7f7;
       --white: #ffffff;
       --radius: 12px;
-      --shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+      --shadow: 0 6px 16px rgba(0,0,0,0.12);
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
 
-    body {
-      background-color: var(--white);
-      color: var(--dark);
-      padding-bottom: 80px;
-    }
+    body { background-color: var(--white); color: var(--dark); padding-bottom: 80px; }
 
+    /* --- Header & Navigation --- */
     header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: var(--white);
-      padding: 15px 24px;
-      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      position: sticky; top: 0; z-index: 100; background: var(--white);
+      padding: 15px 24px; box-shadow: 0 1px 0 rgba(0,0,0,0.08);
+      display: flex; align-items: center; justify-content: space-between;
+      height: 80px;
     }
 
-    .logo {
-      color: var(--primary);
-      font-weight: bold;
-      font-size: 24px;
-      text-decoration: none;
+    .logo { color: var(--primary); font-size: 24px; font-weight: bold; text-decoration: none; display: flex; align-items: center; gap: 8px; }
+
+    /* Search Bar (Centered) */
+    .search-bar {
+      display: flex; align-items: center; background: var(--white);
+      border: 1px solid #dddddd; border-radius: 40px;
+      padding: 8px 8px 8px 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+      transition: 0.2s; cursor: pointer; min-width: 300px;
+    }
+    .search-bar:hover { box-shadow: 0 2px 4px rgba(0,0,0,0.18); }
+    .search-text { font-size: 0.9rem; font-weight: 600; color: var(--dark); margin-right: 10px; }
+    .search-btn {
+      background: var(--primary); color: white; width: 32px; height: 32px;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none;
     }
 
-    .nav-links a {
-      text-decoration: none;
-      color: var(--dark);
-      font-weight: 500;
-      margin-left: 20px;
-      font-size: 14px;
+    /* Right Navigation (User Menu) */
+    .nav-links { display: flex; align-items: center; gap: 20px; }
+    .nav-links a { text-decoration: none; color: var(--dark); font-weight: 600; font-size: 14px; }
+    .btn-primary { background: var(--primary); color: white; padding: 10px 20px; border-radius: 8px; transition: 0.2s; text-decoration: none; border: none; font-size: 14px; font-weight: 600; }
+    .btn-primary:hover { opacity: 0.9; }
+
+    /* --- Global Form Styles (Crucial for Login/Signup pages) --- */
+    input[type=text], input[type=email], input[type=password], input[type=number], select, textarea {
+        width: 100%;
+        padding: 14px;
+        margin: 8px 0 20px;
+        display: inline-block;
+        border: 1px solid #b0b0b0;
+        border-radius: 8px;
+        box-sizing: border-box;
+        font-size: 16px;
+        color: var(--dark);
+    }
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: var(--dark);
+        box-shadow: 0 0 0 2px rgba(34, 34, 34, 0.1);
+    }
+    label {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--dark);
+        margin-bottom: 4px;
+        display: block;
     }
 
-    .nav-links .btn-primary {
-      background: var(--primary);
-      color: white;
-      padding: 10px 20px;
-      border-radius: 20px;
-    }
+    /* Flash Messages */
+    .flash-container { max-width: 600px; margin: 20px auto; padding: 0 20px; }
+    .flash-msg { padding: 12px; text-align: center; border-radius: 8px; margin-bottom: 10px; font-size: 14px; }
+    .flash-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .flash-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    
+    /* General Container */
+    .container { max-width: 1440px; margin: 0 auto; padding: 20px 24px; }
 
-    .flash-msg {
-      padding: 10px;
-      text-align: center;
-      margin: 10px;
-      border-radius: 8px;
-    }
-
-    .flash-success {
-      background: #d4edda;
-      color: #155724;
-    }
-
-    .flash-error {
-      background: #f8d7da;
-      color: #721c24;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-
-    input,
-    textarea,
-    select {
-      width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-      {
-      % block extra_css %
-    }
-
-      {
-      % endblock %
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .search-bar { display: none; } 
+        .logo span { display: none; }
     }
   </style>
-</head>
 
+  {% block extra_css %}{% endblock %}
+</head>
 <body>
 
   <header>
-    <a href="/" class="logo"><i class="fab fa-airbnb"></i> RoomRental</a>
+    <!-- Logo Image -->
+    <a href="/" class="logo">
+        <img src="/static/images/newlogoroomeasy.png" alt="RoomEasy Logo" style="height: 10rem; object-fit: contain;">
+    </a>
 
+    <!-- Search Bar -->
+    <div class="search-bar">
+        <div class="search-text">Anywhere | Any week | Add guests</div>
+        <button class="search-btn"><i class="fas fa-search"></i></button>
+    </div>
+
+    <!-- Navigation -->
     <div class="nav-links">
       {% if session.get('user') %}
-      <a href="/upload">Upload Room</a>
-      <a href="/logout">Logout</a>
-      <a href="#" class="btn-primary">My Profile</a>
+        <a href="/upload">Switch to Hosting</a>
+        <a href="/logout">Logout</a>
+        <!-- User Profile Icon / Image -->
+        <a href="/profile" title="View Profile" style="text-decoration: none;">
+            {% if session.get('profile_image') %}
+                <img src="{{ session.get('profile_image') }}" alt="User" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 1px solid #ddd;">
+            {% else %}
+                <div style="width: 40px; height: 40px; background: #ddd; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--gray);">
+                    <i class="fas fa-user"></i>
+                </div>
+            {% endif %}
+        </a>
       {% else %}
-      <a href="/login">Log in</a>
-      <a href="/login" class="btn-primary">Sign up</a>
+        <a href="/login">Log in</a>
+        <a href="/signup" class="btn-primary">Sign up</a>
       {% endif %}
     </div>
   </header>
 
+  <!-- Flash Messages -->
   {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
-  {% for category, message in messages %}
-  <div class="flash-msg flash-{{ category }}">{{ message }}</div>
-  {% endfor %}
+  <div class="flash-container">
+    {% for category, message in messages %}
+    <div class="flash-msg flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  </div>
   {% endif %}
   {% endwith %}
 
   {% block content %}{% endblock %}
 
 </body>
-
 </html>

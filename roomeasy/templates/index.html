@@ -2,45 +2,107 @@
 
 {% block extra_css %}
 <style>
+    /* --- Category Filters --- */
+    .categories {
+        display: flex; gap: 32px; padding: 20px 48px 10px;
+        overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid #ebebeb;
+        position: sticky; top: 80px; background: white; z-index: 90;
+    }
+    .categories::-webkit-scrollbar { display: none; }
+    
+    .category-item {
+        display: flex; flex-direction: column; align-items: center; gap: 8px;
+        min-width: 64px; cursor: pointer; opacity: 0.6; transition: 0.2s;
+        border-bottom: 2px solid transparent; padding-bottom: 12px;
+    }
+    .category-item:hover, .category-item.active { opacity: 1; border-bottom-color: var(--dark); }
+    .category-item i { font-size: 24px; }
+    .category-item span { font-size: 12px; font-weight: 600; white-space: nowrap; }
+
+    /* --- Listings Grid --- */
     .listings-container {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
         gap: 40px 24px;
-        padding: 24px;
+        padding: 24px 48px;
+        max-width: 1800px;
+        margin: 0 auto;
     }
-    .card { cursor: pointer; text-decoration: none; color: inherit; display: block; }
-    .image-container { position: relative; aspect-ratio: 20/19; border-radius: var(--radius); overflow: hidden; background: #eee; margin-bottom: 12px; }
+
+    /* --- Card Styles --- */
+    .card { cursor: pointer; text-decoration: none; color: inherit; display: block; position: relative; }
+    
+    .image-container {
+        position: relative; aspect-ratio: 20/19; border-radius: var(--radius);
+        overflow: hidden; background: #eee; margin-bottom: 12px;
+    }
+    
     .card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
     .card:hover .card-img { transform: scale(1.05); }
-    .card-info h3 { font-size: 15px; font-weight: 600; margin-bottom: 2px; }
+
+    .favorite-btn {
+        position: absolute; top: 12px; right: 12px; background: transparent;
+        border: none; color: rgba(255,255,255,0.7); font-size: 24px; z-index: 2; cursor: pointer;
+    }
+    .favorite-btn:hover { color: white; transform: scale(1.1); }
+
+    .card-info h3 { font-size: 15px; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-info p { font-size: 14px; color: var(--gray); margin-bottom: 2px; }
     .price { margin-top: 6px; font-size: 15px; font-weight: 600; }
+    .price span { font-weight: 400; }
+    
+    .rating { position: absolute; top: 0; right: 0; display: flex; gap: 4px; font-size: 14px; align-items: center; }
+
+    @media (max-width: 768px) {
+        .categories, .listings-container { padding-left: 24px; padding-right: 24px; }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2>Recommended Rooms</h2>
+<!-- Categories Section -->
+<div class="categories">
+    <div class="category-item active"><i class="fas fa-ticket-alt"></i><span>Icons</span></div>
+    <div class="category-item"><i class="fas fa-water"></i><span>Lakefront</span></div>
+    <div class="category-item"><i class="fas fa-tree"></i><span>Cabins</span></div>
+    <div class="category-item"><i class="fas fa-umbrella-beach"></i><span>Beach</span></div>
+    <div class="category-item"><i class="fas fa-dungeon"></i><span>Mansions</span></div>
+    <div class="category-item"><i class="fas fa-campground"></i><span>Camping</span></div>
+    <div class="category-item"><i class="fas fa-skiing"></i><span>Skiing</span></div>
+    <div class="category-item"><i class="fas fa-city"></i><span>Top cities</span></div>
 </div>
 
+<!-- Main Listings Grid -->
 <div class="listings-container">
     {% for room in rooms %}
     <a href="/room/{{ room.id }}" class="card">
         <div class="image-container">
-            <img src="{{ room.image_url }}" alt="{{ room.title }}" class="card-img" onerror="this.src='https://via.placeholder.com/300'">
+            <button class="favorite-btn"><i class="far fa-heart"></i></button>
+            <!-- Fallback image logic included directly in img tag -->
+            <img src="{{ room.image_url }}" alt="{{ room.title }}" class="card-img" onerror="this.src='https://via.placeholder.com/600x600?text=No+Image'">
         </div>
+        
         <div class="card-info">
-            <div class="info-left">
+            <!-- Title/Location Row -->
+            <div style="display:flex; justify-content:space-between;">
                 <h3>{{ room.address }}</h3>
-                <p>{{ room.title }}</p>
-                <div class="price">${{ room.price_per_month }} <span>/ month</span></div>
+                <div class="rating"><i class="fas fa-star"></i> 4.9</div>
             </div>
-            <div class="rating">
-                <i class="fas fa-star" style="color:var(--dark)"></i> New
-            </div>
+            
+            <!-- Description -->
+            <p>{{ room.title }}</p>
+            <p>Available now</p>
+            
+            <!-- Price -->
+            <div class="price">${{ room.price_per_month }} <span>night</span></div>
         </div>
     </a>
     {% else %}
-    <p style="padding: 24px;">No rooms available. <a href="/upload">Upload one?</a></p>
+    <div style="grid-column: 1/-1; text-align: center; padding: 50px;">
+        <h3>No rooms found.</h3>
+        <p>Be the first to upload a room!</p>
+        <a href="/upload" class="btn-primary" style="display:inline-block; margin-top:20px; text-decoration:none;">Upload Now</a>
+    </div>
     {% endfor %}
 </div>
 {% endblock %}
