@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container" style="max-width: 500px; margin-top: 50px;">
+    <div style="border: 1px solid #ddd; padding: 30px; border-radius: var(--radius); box-shadow: var(--shadow);">
+        <h2 style="text-align: center; margin-bottom: 20px;">Create Account</h2>
+        
+        <form method="POST">
+            <label>Full Name</label>
+            <input type="text" name="full_name" required placeholder="John Doe">
+
+            <label>Email</label>
+            <input type="email" name="email" required placeholder="name@example.com">
+            
+            <label>Password</label>
+            <input type="password" name="password" required placeholder="Create a password">
+            
+            <button type="submit" class="btn-primary" style="width: 100%; border:none; background: var(--primary); color: white; padding: 12px; border-radius: 8px; margin-top: 20px;">Sign Up</button>
+        </form>
+
+        <p style="text-align: center; margin-top: 20px; color: var(--gray);">
+            Already have an account? <a href="/login" style="color: var(--primary);">Login here</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
