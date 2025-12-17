@@ -2,280 +2,551 @@
 
 {% block extra_css %}
 <style>
-    /* --- Category Filters --- */
+    /* --- General Layout --- */
+    .front-page-container {
+        max-width: 1800px;
+        margin: 0 auto;
+        padding-bottom: 80px;
+    }
+
+    /* --- Animations --- */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes slideInRight {
+        from { opacity: 0; transform: translateX(50px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* --- Hero Slideshow --- */
+    .hero-section {
+        position: relative;
+        width: 100%;
+        height: 70vh; /* More immersive height */
+        min-height: 550px;
+        overflow: hidden;
+        margin-bottom: 50px;
+        background: #000;
+        border-radius: 0 0 32px 32px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    }
+
+    .slide {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        opacity: 0;
+        transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform: scale(1.1); /* Start slightly zoomed out */
+    }
+
+    .slide.active { 
+        opacity: 1; 
+        transform: scale(1); /* Zoom to normal */
+        transition: opacity 0.8s ease-out, transform 6s ease-out; /* Smooth slow zoom */
+    }
+
+    .slide-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Gradient Overlay */
+    .slide-overlay {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 100%);
+        z-index: 1;
+    }
+
+    .slide-content {
+        position: absolute;
+        text-align: center;
+        color: white;
+        z-index: 2;
+        max-width: 1000px;
+        padding: 40px;
+    }
+
+    .slide-content h1 {
+        font-size: 5rem;
+        font-weight: 800;
+        margin-bottom: 20px;
+        letter-spacing: -2px;
+        text-shadow: 0 4px 30px rgba(0,0,0,0.4);
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.8s ease-out 0.3s;
+    }
+
+    .slide-content p {
+        font-size: 1.6rem;
+        margin-bottom: 40px;
+        font-weight: 500;
+        text-shadow: 0 2px 15px rgba(0,0,0,0.4);
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.8s ease-out 0.5s;
+    }
+
+    .slide.active .slide-content h1,
+    .slide.active .slide-content p {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .slide-btn {
+        display: inline-block;
+        background: white;
+        color: var(--dark);
+        padding: 18px 48px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        text-decoration: none;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        opacity: 0;
+        transform: translateY(30px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    
+    .slide.active .slide-btn {
+        opacity: 1;
+        transform: translateY(0);
+        transition: all 0.8s ease-out 0.7s;
+    }
+
+    .slide-btn:hover { 
+        transform: translateY(-5px) scale(1.05); 
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 15px 30px rgba(255, 56, 92, 0.4);
+    }
+
+    /* --- Hero Navigation Buttons --- */
+    .hero-nav-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        font-size: 20px;
+        transition: all 0.3s ease;
+    }
+    
+    .hero-nav-btn:hover {
+        background: white;
+        color: var(--dark);
+        transform: translateY(-50%) scale(1.1);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+    }
+
+    .hero-nav-btn.prev { left: 40px; }
+    .hero-nav-btn.next { right: 40px; }
+
+
+    /* --- Section Headers --- */
+    .section-header {
+        padding: 0 60px; /* Increased padding */
+        margin-bottom: 24px;
+        margin-top: 60px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+    .section-header h2 { font-size: 28px; font-weight: 800; color: var(--dark); letter-spacing: -0.5px; }
+    .section-header p { font-size: 16px; color: var(--gray); margin-top: 6px; }
+    
+    /* --- Scrollable Section Wrapper & Buttons --- */
+    .scroll-wrapper {
+        position: relative;
+        padding: 0 80px; /* Increased padding to prevent overlap */
+        opacity: 0;
+        animation: fadeInUp 0.8s ease-out 0.5s forwards;
+    }
+
+    .horizontal-scroll {
+        display: flex;
+        gap: 24px;
+        padding: 10px 4px 30px;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        scrollbar-width: none;
+    }
+    .horizontal-scroll::-webkit-scrollbar { display: none; }
+
+    /* Navigation Buttons (Left/Right) for Lists */
+    .nav-btn {
+        position: absolute;
+        top: 45%; /* Slightly higher */
+        transform: translateY(-50%);
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: white;
+        border: 1px solid rgba(0,0,0,0.08);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 10;
+        transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        opacity: 0;
+        pointer-events: none;
+    }
+    
+    .scroll-wrapper:hover .nav-btn {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    
+    .nav-btn:hover {
+        transform: translateY(-50%) scale(1.15);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+        background: var(--dark);
+        color: white;
+        border-color: var(--dark);
+    }
+    
+    /* Position buttons outside the content area (inside the padding gutter) */
+    .nav-btn.prev { left: 20px; }
+    .nav-btn.next { right: 20px; }
+
+    .nav-btn i { font-size: 16px; }
+
+    .scroll-card {
+        min-width: 320px;
+        max-width: 320px;
+        flex-shrink: 0;
+        transition: transform 0.3s ease;
+    }
+    .scroll-card:hover { transform: translateY(-8px); }
+
+    /* --- Categories (Glassmorphism) --- */
     .categories {
-        display: flex; gap: 32px; padding: 20px 48px 10px;
-        overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid #ebebeb;
-        position: sticky; top: 80px; background: white; z-index: 90;
+        display: flex; gap: 40px; padding: 20px 60px;
+        overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid rgba(0,0,0,0.06);
+        position: sticky; top: 80px; 
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        z-index: 90;
+        margin-bottom: 20px;
     }
     .categories::-webkit-scrollbar { display: none; }
     
     .category-item {
-        display: flex; flex-direction: column; align-items: center; gap: 8px;
-        min-width: 64px; cursor: pointer; opacity: 0.6; transition: 0.2s;
-        border-bottom: 2px solid transparent; padding-bottom: 12px;
+        display: flex; flex-direction: column; align-items: center; gap: 10px;
+        min-width: 64px; cursor: pointer; opacity: 0.5; transition: all 0.3s;
+        border-bottom: 2px solid transparent; padding-bottom: 10px;
     }
-    .category-item:hover, .category-item.active { opacity: 1; border-bottom-color: var(--dark); }
-    .category-item i { font-size: 24px; }
-    .category-item span { font-size: 12px; font-weight: 600; white-space: nowrap; }
-
-    /* --- Listings Grid --- */
-    .listings-container {
+    .category-item:hover, .category-item.active { opacity: 1; transform: scale(1.1); color: var(--dark); }
+    .category-item.active { border-bottom-color: var(--dark); }
+    .category-item i { font-size: 24px; margin-bottom: 4px; }
+    .category-item span { font-size: 13px; font-weight: 600; white-space: nowrap; }
+    
+    /* --- Standard Grid (All Listings) --- */
+    .listings-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 40px 24px;
-        padding: 24px 48px;
-        max-width: 1800px;
-        margin: 0 auto;
+        padding: 24px 60px; /* Increased padding */
+        opacity: 0;
+        animation: fadeInUp 0.8s ease-out 0.8s forwards;
     }
 
     /* --- Card Styles --- */
     .card { cursor: pointer; text-decoration: none; color: inherit; display: block; position: relative; }
     
     .image-container {
-        position: relative; aspect-ratio: 20/19; border-radius: var(--radius);
-        overflow: hidden; background: #eee; margin-bottom: 12px;
+        position: relative; aspect-ratio: 20/19; border-radius: 16px;
+        overflow: hidden; background: #f0f0f0; margin-bottom: 16px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
     }
     
-    .card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease; }
-    .card:hover .card-img { transform: scale(1.05); }
+    .card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+    .card:hover .card-img { transform: scale(1.12); }
 
-    /* --- Like Button & Cool Animation --- */
     .favorite-btn {
-        position: absolute; top: 12px; right: 12px; background: transparent;
-        border: none; color: rgba(0, 0, 0, 0.5); font-size: 24px; z-index: 10; cursor: pointer;
-        transition: color 0.1s;
-        -webkit-text-stroke: 1px white; /* Outline */
+        position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.85);
+        backdrop-filter: blur(4px);
+        border: none; color: rgba(0, 0, 0, 0.5); font-size: 20px; z-index: 10; cursor: pointer;
+        transition: all 0.2s; -webkit-text-stroke: 1px white;
         display: flex; align-items: center; justify-content: center;
-        width: 40px; height: 40px;
+        width: 36px; height: 36px; border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-
-    /* Filled State */
-    .favorite-btn.liked { 
-        color: #ff385c; 
-        opacity: 1; 
-        -webkit-text-stroke: 0;
-    }
+    .favorite-btn:hover { transform: scale(1.15); background: white; color: var(--primary); }
+    .favorite-btn.liked { color: #ff385c; opacity: 1; -webkit-text-stroke: 0; background: white; }
     
-    /* The Bounce Animation (Springy) */
-    @keyframes heart-bounce {
-        0%   { transform: scale(1); }
-        40%  { transform: scale(1.6); }
-        70%  { transform: scale(0.85); }
-        100% { transform: scale(1); }
-    }
+    .card-info h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--dark); }
+    .card-info p { font-size: 15px; color: var(--gray); margin-bottom: 6px; }
+    .price { margin-top: 8px; font-size: 17px; font-weight: 800; color: var(--dark); }
+    .price span { font-weight: 400; color: var(--gray); font-size: 15px; }
 
-    /* Apply animations when .animating class is present */
-    .favorite-btn.animating i {
-        animation: heart-bounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
+    /* Animation Keyframes for Heart */
+    @keyframes heart-bounce { 0% { transform: scale(1); } 40% { transform: scale(1.6); } 70% { transform: scale(0.85); } 100% { transform: scale(1); } }
+    .favorite-btn.animating i { animation: heart-bounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
-    /* --- Splash Particle Animation --- */
-    .particle-heart {
-        position: absolute;
-        top: 32px; /* Starts at the center of the button */
-        right: 32px;
-        font-size: 10px;
-        pointer-events: none; /* Let clicks pass through */
-        z-index: 5;
-        opacity: 0;
-    }
-
-    /* The Splash/Fall Animation */
-    @keyframes particle-drop {
-        0% {
-            transform: translate(0, 0) scale(1);
-            opacity: 1;
-        }
-        50% {
-            opacity: 1;
-        }
-        100% {
-            /* Variables --tx and --ty set in JS */
-            transform: translate(var(--tx), var(--ty)) scale(0);
-            opacity: 0;
-        }
-    }
-
-    /* --- Search Feedback Styles --- */
-    .search-feedback {
-        max-width: 1800px; margin: 0 auto; padding: 20px 48px 0;
-    }
-    .recommendation-banner {
-        background-color: #f7f7f7;
-        border-radius: 12px;
-        padding: 16px 24px;
-        margin-bottom: 20px;
-        border-left: 5px solid var(--primary);
-    }
-    .recommendation-banner h3 { font-size: 1.1rem; margin-bottom: 4px; }
-    .recommendation-banner p { color: var(--gray); font-size: 0.95rem; }
-
-    .card-info h3 { font-size: 15px; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .card-info p { font-size: 14px; color: var(--gray); margin-bottom: 2px; }
-    .price { margin-top: 6px; font-size: 15px; font-weight: 600; }
-    .price span { font-weight: 400; }
-    
     @media (max-width: 768px) {
-        .categories, .listings-container { padding-left: 24px; padding-right: 24px; }
-        .search-feedback { padding-left: 24px; padding-right: 24px; }
+        .section-header, .scroll-wrapper, .listings-grid, .categories { padding-left: 24px; padding-right: 24px; }
+        .hero-section { height: 450px; border-radius: 0; margin-bottom: 30px; }
+        .slide-content h1 { font-size: 2.5rem; letter-spacing: -1px; }
+        .slide-content p { font-size: 1.1rem; }
+        .hero-nav-btn { width: 40px; height: 40px; font-size: 16px; }
+        .hero-nav-btn.prev { left: 15px; }
+        .hero-nav-btn.next { right: 15px; }
+        .nav-btn { display: none; } /* Hide list nav buttons on mobile */
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Categories Section -->
-<div class="categories">
-    <div class="category-item active"><i class="fas fa-ticket-alt"></i><span>Icons</span></div>
-    <div class="category-item"><i class="fas fa-water"></i><span>Lakefront</span></div>
-    <div class="category-item"><i class="fas fa-tree"></i><span>Cabins</span></div>
-    <div class="category-item"><i class="fas fa-umbrella-beach"></i><span>Beach</span></div>
-    <div class="category-item"><i class="fas fa-dungeon"></i><span>Mansions</span></div>
-    <div class="category-item"><i class="fas fa-campground"></i><span>Camping</span></div>
-    <div class="category-item"><i class="fas fa-skiing"></i><span>Skiing</span></div>
-    <div class="category-item"><i class="fas fa-city"></i><span>Top cities</span></div>
-</div>
+<div class="front-page-container">
 
-<!-- Search Results Feedback -->
-{% if search_query %}
-<div class="search-feedback">
-    {% if showing_recommendations %}
-        <div class="recommendation-banner">
-            <h3>No results found for "{{ search_query }}"</h3>
-            <p>We couldn't find exact matches, but here are some recommended properties you might like:</p>
+    <!-- 1. HERO SLIDESHOW -->
+    {% if not search_query and featured_rooms %}
+    <div class="hero-section">
+        <!-- Hero Navigation Buttons -->
+        <button class="hero-nav-btn prev" onclick="changeSlide(-1)"><i class="fas fa-chevron-left"></i></button>
+        <button class="hero-nav-btn next" onclick="changeSlide(1)"><i class="fas fa-chevron-right"></i></button>
+
+        {% for room in featured_rooms %}
+        <div class="slide {% if loop.first %}active{% endif %}">
+            <img src="{{ room.image_url }}" class="slide-img" onerror="this.src='https://via.placeholder.com/1600x900'">
+            <div class="slide-overlay"></div>
+            <div class="slide-content">
+                <h1>Find your place to stay</h1>
+                <p>Discover {{ room.title }} and other amazing homes.</p>
+                <a href="/room/{{ room.id }}" class="slide-btn">Explore Now</a>
+            </div>
         </div>
-    {% else %}
-        <h2 style="font-size: 1.5rem; margin-bottom: 10px;">Results for "{{ search_query }}"</h2>
+        {% endfor %}
+    </div>
     {% endif %}
-</div>
-{% endif %}
 
-<!-- Main Listings Grid -->
-<div class="listings-container">
-    {% for room in rooms %}
-    <a href="/room/{{ room.id }}" class="card">
-        <div class="image-container">
-            <!-- 
-                1. We use event.preventDefault() so clicking the heart doesn't open the room page.
-                2. We check if room.id is in liked_room_ids to apply the 'liked' class and correct icon.
-            -->
-            <button class="favorite-btn {% if room.id in liked_room_ids %}liked{% endif %}" 
-                    onclick="toggleLike(event, {{ room.id }})">
-                <i class="{% if room.id in liked_room_ids %}fas{% else %}fas{% endif %} fa-heart"></i>
-            </button>
-            <img src="{{ room.image_url }}" alt="{{ room.title }}" class="card-img" onerror="this.src='https://via.placeholder.com/600x600?text=No+Image'">
+    <!-- 2. CATEGORIES (Sticky) -->
+    <div class="categories">
+        <div class="category-item active"><i class="fas fa-th-large"></i><span>All</span></div>
+        <div class="category-item"><i class="fas fa-map-marked-alt"></i><span>Near Me</span></div>
+        <div class="category-item"><i class="fas fa-fire"></i><span>Trending</span></div>
+        <div class="category-item"><i class="fas fa-home"></i><span>Rooms</span></div>
+        <div class="category-item"><i class="fas fa-city"></i><span>Apartments</span></div>
+        <div class="category-item"><i class="fas fa-umbrella-beach"></i><span>Beach</span></div>
+        <div class="category-item"><i class="fas fa-tree"></i><span>Cabins</span></div>
+    </div>
+
+    <!-- Search Feedback & No Results Logic -->
+    {% if search_query %}
+    <div style="padding: 20px 60px;">
+        {% if rooms %}
+            <h2>Results for "{{ search_query }}"</h2>
+        {% else %}
+            <div style="padding: 20px 0;">
+                <h2>No results found for "{{ search_query }}"</h2>
+                <p style="color: var(--gray); font-size: 16px; margin-top: 8px;">We couldn't find any rooms in that location. Check out these popular places instead:</p>
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+
+    <!-- 3. RECENTLY VIEWED (Horizontal Scroll) -->
+    {% if recently_viewed_rooms and not search_query %}
+    <div class="section-header">
+        <div>
+            <h2>Recently Viewed</h2>
+            <p>Pick up where you left off</p>
         </div>
-        
-        <div class="card-info">
-            <div style="display:flex; justify-content:space-between;">
-                <h3>{{ room.address }}</h3>
+    </div>
+    <div class="scroll-wrapper" id="recent-wrapper">
+        <button class="nav-btn prev" onclick="scrollSection('recent-wrapper', -1)"><i class="fas fa-chevron-left"></i></button>
+        <div class="horizontal-scroll">
+            {% for room in recently_viewed_rooms %}
+            <div class="scroll-card">
+                <a href="/room/{{ room.id }}" class="card">
+                    <div class="image-container">
+                        <button class="favorite-btn {% if room.id in liked_room_ids %}liked{% endif %}" onclick="toggleLike(event, {{ room.id }})">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        <img src="{{ room.image_url }}" class="card-img" onerror="this.src='https://via.placeholder.com/600x600'">
+                    </div>
+                    <div class="card-info">
+                        <h3>{{ room.address }}</h3>
+                        <p>{{ room.title }}</p>
+                        <div class="price">${{ room.price_per_month }} <span>month</span></div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        <button class="nav-btn next" onclick="scrollSection('recent-wrapper', 1)"><i class="fas fa-chevron-right"></i></button>
+    </div>
+    {% endif %}
+
+
+    <!-- 4. RECOMMENDED / LOCATION BASED (Horizontal Scroll) -->
+    <!-- Modified logic: Show if search is empty OR if search matches nothing (so we show fallback) -->
+    {% if recommended_rooms and (not search_query or not rooms) %}
+    <div class="section-header">
+        <div>
+            <h2>Find your place to live</h2>
+            <p>Popular homes recommended for you</p>
+        </div>
+    </div>
+    <div class="scroll-wrapper" id="recommend-wrapper">
+        <button class="nav-btn prev" onclick="scrollSection('recommend-wrapper', -1)"><i class="fas fa-chevron-left"></i></button>
+        <div class="horizontal-scroll">
+            {% for room in recommended_rooms %}
+            <div class="scroll-card">
+                <a href="/room/{{ room.id }}" class="card">
+                    <div class="image-container">
+                        <button class="favorite-btn {% if room.id in liked_room_ids %}liked{% endif %}" onclick="toggleLike(event, {{ room.id }})">
+                            <i class="fas fa-heart"></i>
+                        </button>
+                        <img src="{{ room.image_url }}" class="card-img" onerror="this.src='https://via.placeholder.com/600x600'">
+                    </div>
+                    <div class="card-info">
+                        <h3>{{ room.address }}</h3>
+                        <p>{{ room.title }}</p>
+                        <div class="price">${{ room.price_per_month }} <span>month</span></div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        <button class="nav-btn next" onclick="scrollSection('recommend-wrapper', 1)"><i class="fas fa-chevron-right"></i></button>
+    </div>
+    {% endif %}
+
+
+    <!-- 5. ALL LISTINGS GRID -->
+    {% if rooms %}
+    <div class="section-header">
+        <h2>Explore All</h2>
+    </div>
+    <div class="listings-grid">
+        {% for room in rooms %}
+        <a href="/room/{{ room.id }}" class="card">
+            <div class="image-container">
+                <button class="favorite-btn {% if room.id in liked_room_ids %}liked{% endif %}" onclick="toggleLike(event, {{ room.id }})">
+                    <i class="fas fa-heart"></i>
+                </button>
+                <img src="{{ room.image_url }}" alt="{{ room.title }}" class="card-img" onerror="this.src='https://via.placeholder.com/600x600'">
             </div>
             
-            <p>{{ room.title }}</p>
-            <p>Available now</p>
-            
-            <div class="price">${{ room.price_per_month }} <span>night</span></div>
-        </div>
-    </a>
-    {% else %}
-    <div style="grid-column: 1/-1; text-align: center; padding: 50px;">
-        <h3>No rooms found.</h3>
-        <p>Be the first to upload a room!</p>
-        <a href="/upload" class="btn-primary" style="display:inline-block; margin-top:20px; text-decoration:none;">Upload Now</a>
+            <div class="card-info">
+                <div style="display:flex; justify-content:space-between;">
+                    <h3>{{ room.address }}</h3>
+                </div>
+                <p>{{ room.title }}</p>
+                <div class="price">${{ room.price_per_month }} <span>month</span></div>
+            </div>
+        </a>
+        {% endfor %}
     </div>
-    {% endfor %}
+    {% elif not recommended_rooms %}
+    <!-- Only show this if absolutely NO data (search empty, recommendations empty) -->
+    <div style="text-align: center; padding: 50px;">
+        <h3>No rooms available anywhere.</h3>
+        <a href="/upload" class="btn-primary" style="display:inline-block; margin-top:20px;">Upload Now</a>
+    </div>
+    {% endif %}
+
 </div>
 
+<!-- JavaScript for Slideshow, Like Button & Scrolling -->
 <script>
-async function toggleLike(event, roomId) {
-    // 1. Prevent Navigation
-    event.preventDefault();
-    event.stopPropagation();
-    
-    const btn = event.currentTarget;
-    const wasLiked = btn.classList.contains('liked');
-    
-    // 2. Optimistic UI Update
-    if (wasLiked) {
-        btn.classList.remove('liked');
-    } else {
-        btn.classList.add('liked');
-        
-        // Bounce Animation
-        btn.classList.remove('animating');
-        void btn.offsetWidth; // Force Reflow
-        btn.classList.add('animating');
-        
-        // --- TRIGGER SPLASH ANIMATION ---
-        createHeartSplash(btn);
+    // --- ADVANCED SLIDESHOW LOGIC ---
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    let slideInterval;
+
+    function startSlideShow() {
+        if (totalSlides > 1) {
+            slideInterval = setInterval(() => changeSlide(1, false), 5000);
+        }
     }
 
-    // 3. Send Network Request
-    try {
-        const response = await fetch(`/toggle_wishlist/${roomId}`, { method: 'POST' });
+    function changeSlide(direction, manual = true) {
+        if (totalSlides <= 1) return;
         
-        if (response.status === 401) {
-            if (wasLiked) btn.classList.add('liked');
-            else btn.classList.remove('liked');
+        // Reset timer on manual click
+        if (manual) {
+            clearInterval(slideInterval);
+            startSlideShow();
+        }
+
+        slides[currentSlide].classList.remove('active');
+        
+        // Calculate new index
+        currentSlide = (currentSlide + direction + totalSlides) % totalSlides;
+        
+        slides[currentSlide].classList.add('active');
+    }
+
+    // Start auto-play
+    startSlideShow();
+
+    // --- HORIZONTAL SCROLL LOGIC ---
+    function scrollSection(wrapperId, direction) {
+        const wrapper = document.getElementById(wrapperId);
+        const container = wrapper.querySelector('.horizontal-scroll');
+        const scrollAmount = 350; // Card width + gap
+        
+        container.scrollBy({
+            left: scrollAmount * direction,
+            behavior: 'smooth'
+        });
+    }
+
+    // --- LIKE BUTTON LOGIC ---
+    async function toggleLike(event, roomId) {
+        event.preventDefault();
+        event.stopPropagation();
+        
+        const btn = event.currentTarget;
+        const wasLiked = btn.classList.contains('liked');
+        
+        // Optimistic UI
+        if (wasLiked) {
+            btn.classList.remove('liked');
+        } else {
+            btn.classList.add('liked');
             btn.classList.remove('animating');
-
-            alert("Please login to like properties!");
-            window.location.href = "/login";
-            return;
+            void btn.offsetWidth; // Force Reflow
+            btn.classList.add('animating');
         }
 
-        const data = await response.json();
-        
-        if (data.status === 'added' && !btn.classList.contains('liked')) {
-             btn.classList.add('liked');
-        } else if (data.status === 'removed' && btn.classList.contains('liked')) {
-             btn.classList.remove('liked');
+        try {
+            const response = await fetch(`/toggle_wishlist/${roomId}`, { method: 'POST' });
+            
+            if (response.status === 401) {
+                if (wasLiked) btn.classList.add('liked'); else btn.classList.remove('liked');
+                alert("Please login to like properties!");
+                window.location.href = "/login";
+                return;
+            }
+        } catch (error) {
+            console.error('Error toggling like:', error);
+            if (wasLiked) btn.classList.add('liked'); else btn.classList.remove('liked');
         }
-
-    } catch (error) {
-        console.error('Error toggling like:', error);
-        if (wasLiked) btn.classList.add('liked');
-        else btn.classList.remove('liked');
-        btn.classList.remove('animating');
     }
-}
-
-function createHeartSplash(btn) {
-    const container = btn.closest('.image-container');
-    // Colorful palette
-    const colors = ['#ff385c', '#e00b41', '#ff9cb3', '#ffc107', '#4caf50', '#2196f3', '#9c27b0'];
-    
-    // Create particles
-    for (let i = 0; i < 15; i++) {
-        const particle = document.createElement('i');
-        particle.classList.add('fas', 'fa-heart', 'particle-heart');
-        
-        // Random Color
-        particle.style.color = colors[Math.floor(Math.random() * colors.length)];
-        
-        // Random Size
-        const size = Math.random() * 12 + 8; // 8px to 20px
-        particle.style.fontSize = `${size}px`;
-        
-        // Physics for "Splash Down"
-        // x: random spread left/right (-40px to 40px)
-        // y: random drop down (20px to 80px)
-        const tx = (Math.random() * 100) - 50; 
-        const ty = (Math.random() * 60) + 20; 
-        
-        particle.style.setProperty('--tx', `${tx}px`);
-        particle.style.setProperty('--ty', `${ty}px`);
-        
-        // Random animation duration
-        particle.style.animation = `particle-drop ${0.6 + Math.random() * 0.4}s ease-out forwards`;
-        
-        container.appendChild(particle);
-        
-        // Cleanup
-        setTimeout(() => {
-            particle.remove();
-        }, 1000);
-    }
-}
 </script>
 {% endblock %}

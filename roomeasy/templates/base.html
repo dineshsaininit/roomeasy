@@ -31,19 +31,23 @@
 
     .logo { color: var(--primary); font-size: 24px; font-weight: bold; text-decoration: none; display: flex; align-items: center; gap: 8px; }
 
-    /* --- Search Bar Redesign --- */
+    /* --- Search Bar Redesign with Autocomplete --- */
+    .search-wrapper {
+        position: relative;
+    }
+
     .search-bar {
       display: flex; 
       align-items: center; 
       background: var(--white);
       border: 1px solid #dddddd; 
       border-radius: 50px; /* Pill shape */
-      padding: 4px 6px 4px 24px; /* Reduced vertical padding */
+      padding: 4px 6px 4px 20px; /* Adjusted padding */
       box-shadow: 0 1px 2px rgba(0,0,0,0.08);
-      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smooth expanding animation */
+      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
       cursor: text; 
-      width: 400px; /* Initial wider width */
-      height: 48px; /* Fixed height for consistency */
+      width: 440px; 
+      height: 48px;
     }
     
     .search-bar:hover { 
@@ -51,9 +55,8 @@
         border-color: #b0b0b0;
     }
     
-    /* Animation: Expand when clicked */
     .search-bar:focus-within {
-        width: 550px; /* Expands width */
+        width: 580px;
         box-shadow: 0 6px 16px rgba(0,0,0,0.15);
         border-color: var(--dark);
     }
@@ -62,7 +65,7 @@
         font-size: 15px; 
         font-weight: 500; 
         color: var(--dark); 
-        margin-right: 12px; 
+        margin-right: 8px; 
         border: none;
         outline: none;
         background: transparent;
@@ -87,14 +90,54 @@
     }
     
     .search-bar:focus-within .search-btn {
-        transform: scale(1.05); /* Subtle pop on focus */
+        transform: scale(1.05);
     }
+
+    /* Autocomplete Suggestions Box */
+    .suggestions-box {
+        position: absolute;
+        top: 100%;
+        left: 20px;
+        right: 40px;
+        background: white;
+        border: 1px solid #ddd;
+        border-top: none;
+        border-radius: 0 0 24px 24px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+        z-index: 1000;
+        max-height: 350px;
+        overflow-y: auto;
+        display: none; 
+        margin-top: 10px;
+        padding-bottom: 8px;
+    }
+
+    /* Suggestion Items */
+    .suggestion-item {
+        padding: 12px 24px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--dark);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: background 0.1s;
+    }
+    .suggestion-item:hover { background-color: #f7f7f7; }
+    .suggestion-item i { color: var(--gray); font-size: 14px; width: 20px; text-align: center;}
+    
+    /* Special styling for "Use Current Location" */
+    .suggestion-special {
+        color: var(--primary);
+        font-weight: 600;
+        border-bottom: 1px solid #eee;
+    }
+    .suggestion-special i { color: var(--primary); }
+    .suggestion-special:hover { background-color: #fff0f3; }
 
     /* Right Navigation (User Menu) */
     .nav-links { display: flex; align-items: center; gap: 24px; }
     .nav-links a { text-decoration: none; color: var(--dark); font-weight: 600; font-size: 14px; }
-    
-    /* New Nav Item Styling for Icons */
     .nav-item { display: flex; align-items: center; gap: 8px; transition: color 0.2s ease; }
     .nav-item:hover { color: var(--primary); }
     .nav-item i { font-size: 18px; }
@@ -102,45 +145,18 @@
     .btn-primary { background: var(--primary); color: white; padding: 10px 20px; border-radius: 8px; transition: 0.2s; text-decoration: none; border: none; font-size: 14px; font-weight: 600; }
     .btn-primary:hover { opacity: 0.9; }
 
-    /* --- Global Form Styles (Crucial for Login/Signup pages) --- */
+    /* Global Form Styles */
     input[type=text], input[type=email], input[type=password], input[type=number], select, textarea {
-        width: 100%;
-        padding: 14px;
-        margin: 8px 0 20px;
-        display: inline-block;
-        border: 1px solid #b0b0b0;
-        border-radius: 8px;
-        box-sizing: border-box;
-        font-size: 16px;
-        color: var(--dark);
+        width: 100%; padding: 14px; margin: 8px 0 20px; display: inline-block;
+        border: 1px solid #b0b0b0; border-radius: 8px; box-sizing: border-box;
+        font-size: 16px; color: var(--dark);
     }
     
     /* Reset search input to not use global form styles */
-    .search-bar input[type=text] {
-        border: none;
-        padding: 0;
-        margin: 0;
-        border-radius: 0;
-    }
-
-    input:focus, select:focus, textarea:focus {
-        outline: none;
-        border-color: var(--dark);
-        box-shadow: 0 0 0 2px rgba(34, 34, 34, 0.1);
-    }
-    /* Reset for search bar input focus */
-    .search-bar input:focus {
-        box-shadow: none;
-        border: none;
-    }
-
-    label {
-        font-size: 14px;
-        font-weight: 600;
-        color: var(--dark);
-        margin-bottom: 4px;
-        display: block;
-    }
+    .search-bar input[type=text] { border: none; padding: 0; margin: 0; border-radius: 0; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--dark); box-shadow: 0 0 0 2px rgba(34, 34, 34, 0.1); }
+    .search-bar input:focus { box-shadow: none; border: none; }
+    label { font-size: 14px; font-weight: 600; color: var(--dark); margin-bottom: 4px; display: block; }
 
     /* Flash Messages */
     .flash-container { max-width: 600px; margin: 20px auto; padding: 0 20px; }
@@ -148,8 +164,11 @@
     .flash-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
     .flash-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     
-    /* General Container */
     .container { max-width: 1440px; margin: 0 auto; padding: 20px 24px; }
+
+    /* Spinner Animation */
+    .fa-spinner { animation: spin 1s linear infinite; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
 
     /* Mobile Responsive */
     @media (max-width: 768px) {
@@ -168,21 +187,38 @@
         <img src="/static/images/newlogoroomeasy.png" alt="RoomEasy Logo" style="height: 10rem; object-fit: contain;">
     </a>
 
-    <!-- Search Bar Form -->
-    <form action="/" method="GET" class="search-bar">
-        <input type="text" name="q" class="search-text" placeholder="Search by location..." value="{{ request.args.get('q', '') }}" autocomplete="off">
-        <button type="submit" class="search-btn"><i class="fas fa-search"></i></button>
-    </form>
+    <!-- Search Bar Wrapper -->
+    <div class="search-wrapper">
+        <form action="/" method="GET" class="search-bar">
+            <!-- Input Field -->
+            <input type="text" id="searchInput" name="q" class="search-text" 
+                   placeholder="Search by location..." 
+                   value="{{ request.args.get('q', '') }}" 
+                   autocomplete="off">
+                   
+            <button type="submit" class="search-btn"><i class="fas fa-search"></i></button>
+        </form>
+        
+        <!-- Dropdown for matching results (Hidden by default) -->
+        <div id="suggestionsBox" class="suggestions-box"></div>
+    </div>
 
     <!-- Navigation -->
     <div class="nav-links">
+      <!-- Home Link -->
+      <a href="/" class="nav-item">
+          <i class="fas fa-home"></i>
+          <span>Home</span>
+      </a>
+
       {% if session.get('user') %}
         <a href="/wishlist" class="nav-item">
             <i class="far fa-heart"></i>
             <span>Wishlist</span>
         </a>
         <a href="/upload" class="nav-item">
-            <i class="fas fa-home"></i>
+            <!-- Changed icon to plus-circle to distinguish from Home -->
+            <i class="fas fa-plus-circle"></i>
             <span>Switch to Hosting</span>
         </a>
         <a href="/logout" class="nav-item">
@@ -219,5 +255,150 @@
 
   {% block content %}{% endblock %}
 
+  <!-- SCRIPTS FOR AUTO-LOCATION & AUTOCOMPLETE -->
+  <script>
+    // 1. Fetch available locations from DB on load
+    let availableLocations = [];
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const response = await fetch('/api/locations');
+            availableLocations = await response.json();
+            // Optional: Log to verify data
+            console.log('Locations loaded:', availableLocations);
+        } catch (error) {
+            console.error('Failed to load locations:', error);
+        }
+    });
+
+    // 2. Autocomplete & Dropdown Logic
+    const searchInput = document.getElementById('searchInput');
+    const suggestionsBox = document.getElementById('suggestionsBox');
+
+    // Helper to render the dropdown list
+    function renderSuggestions(matches) {
+        suggestionsBox.innerHTML = ''; // Clear existing
+        
+        // A. Always add "Use current location" at the top
+        const locDiv = document.createElement('div');
+        locDiv.className = 'suggestion-item suggestion-special';
+        locDiv.innerHTML = `<i class="fas fa-location-arrow" id="geo-spinner"></i> <span>Use my current location</span>`;
+        locDiv.onclick = detectLocation;
+        suggestionsBox.appendChild(locDiv);
+
+        // B. Add filtered results
+        if (matches && matches.length > 0) {
+            matches.slice(0, 8).forEach(match => { // Limit to 8
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.innerHTML = `<i class="fas fa-map-marker-alt"></i> <span>${match}</span>`;
+                div.onclick = () => {
+                    searchInput.value = match;
+                    suggestionsBox.style.display = 'none';
+                    searchInput.closest('form').submit(); // Optional auto-submit for dropdown click
+                };
+                suggestionsBox.appendChild(div);
+            });
+        } else {
+            // C. Show "No results" message if query exists but no matches
+            const currentQuery = searchInput.value.trim();
+            if (currentQuery.length > 0) {
+                const noResDiv = document.createElement('div');
+                noResDiv.className = 'suggestion-item';
+                noResDiv.style.cursor = 'default';
+                noResDiv.style.color = '#717171';
+                noResDiv.innerHTML = `<i class="fas fa-search"></i> <span>No results for "${currentQuery}" yet</span>`;
+                suggestionsBox.appendChild(noResDiv);
+            }
+        }
+        
+        // Show the box
+        suggestionsBox.style.display = 'block';
+    }
+
+    // Event: Input Typing
+    searchInput.addEventListener('input', function() {
+        const query = this.value.toLowerCase().trim();
+        // Filter locations that contain the query string
+        const matches = availableLocations.filter(loc => loc.toLowerCase().includes(query));
+        renderSuggestions(matches);
+    });
+
+    // Event: Focus (Show list immediately)
+    searchInput.addEventListener('focus', function() {
+        const query = this.value.toLowerCase().trim();
+        const matches = query ? availableLocations.filter(loc => loc.toLowerCase().includes(query)) : [];
+        renderSuggestions(matches);
+    });
+
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+            suggestionsBox.style.display = 'none';
+        }
+    });
+
+    // 3. Auto-Location Logic (Geocoding)
+    function detectLocation() {
+        if (!navigator.geolocation) {
+            alert("Geolocation is not supported by your browser");
+            return;
+        }
+
+        const spinner = document.getElementById('geo-spinner');
+        if(spinner) spinner.className = 'fas fa-spinner'; // Start spinner
+
+        // High accuracy options to get exact city instead of general region
+        const options = {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        };
+
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            
+            try {
+                // Use OpenStreetMap Nominatim API for reverse geocoding
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+                const data = await response.json();
+                
+                // Address Hierarchy Check (Prioritize granular names over district/county)
+                const addr = data.address;
+                const city = addr.city || addr.town || addr.village || addr.municipality || addr.hamlet || addr.suburb || addr.neighbourhood;
+                
+                if (city) {
+                    searchInput.value = city;
+                    suggestionsBox.style.display = 'none';
+                    // Auto-submit the form
+                    searchInput.closest('form').submit();
+                } else {
+                    // Fallback to less specific if city not found
+                    const region = addr.county || addr.state_district;
+                    if (region) {
+                         searchInput.value = region;
+                         suggestionsBox.style.display = 'none';
+                         searchInput.closest('form').submit();
+                    } else {
+                        alert("Could not detect a specific city name.");
+                    }
+                }
+            } catch (error) {
+                console.error("Geocoding error:", error);
+                alert("Failed to get location address.");
+            } finally {
+                if(spinner) spinner.className = 'fas fa-location-arrow'; // Restore icon
+            }
+
+        }, (error) => {
+            if(spinner) spinner.className = 'fas fa-location-arrow';
+            console.error(error);
+            alert("Unable to retrieve your location. Please check browser permissions.");
+        }, options);
+    }
+  </script>
+
 </body>
+</html>
 </html>

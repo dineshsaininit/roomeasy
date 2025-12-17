@@ -1,4 +1,5 @@
 import os
+import random
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -33,32 +34,58 @@ def login_required(f):
 @app.route('/')
 def index():
     search_query = request.args.get('q', '').strip()
-    showing_recommendations = False
+    
+    # Initialize lists
+    featured_rooms = []
+    recently_viewed_rooms = []
+    recommended_rooms = []
+    all_rooms = []
     
     try:
-        # Base query for available rooms
+        # 1. FETCH ALL AVAILABLE ROOMS (Base Dataset)
         base_query = supabase.table('rooms').select("*").eq('status', 'available')
         
         if search_query:
-            # SEARCH LOGIC: Filter by address OR title (case-insensitive)
-            # Using PostgREST syntax for OR with ILIKE
+            # SEARCH MODE: Filter by address OR title
             filter_condition = f"address.ilike.%{search_query}%,title.ilike.%{search_query}%"
             response = base_query.or_(filter_condition).execute()
-            rooms = response.data
+            all_rooms = response.data
             
-            # RECOMMENDATION SYSTEM FALLBACK
-            if not rooms:
-                # If no exact matches found, fetch "recommended" rooms (e.g., all available ones)
-                # In a real system, this would be smarter (e.g., similar category)
+            # If no results, show recommendations instead of empty page
+            if not all_rooms:
                 response = supabase.table('rooms').select("*").eq('status', 'available').limit(12).execute()
-                rooms = response.data
-                showing_recommendations = True
+                recommended_rooms = response.data
         else:
-            # No search, show all
+            # HOME PAGE MODE
             response = base_query.execute()
-            rooms = response.data
-        
-        # Check which rooms the user has liked
+            all_rooms = response.data
+            
+            # A. HERO SLIDESHOW (Featured)
+            # Pick 5 random rooms for the main slider
+            if len(all_rooms) > 0:
+                featured_rooms = random.sample(all_rooms, min(len(all_rooms), 5))
+            
+            # B. RECENTLY VIEWED (From Session)
+            recent_ids = session.get('recently_viewed', [])
+            if recent_ids:
+                # Fetch specific IDs. 
+                # Note: 'in_' expects a list. We filter from all_rooms to save an API call 
+                # or make a new call if you prefer strict freshness.
+                recently_viewed_rooms = [r for r in all_rooms if r['id'] in recent_ids]
+                # Reverse to show newest viewed first
+                recently_viewed_rooms.reverse()
+
+            # C. RECOMMENDED / LOCATION BASED
+            # For demo: Pick a "City" from the first room and show others from there
+            if len(all_rooms) > 0:
+                # Try to find a popular location from the data
+                sample_city = all_rooms[0]['address'].split(',')[-1].strip() # Very rough city extraction
+                recommended_rooms = [r for r in all_rooms if sample_city.lower() in r['address'].lower()]
+                # If we didn't find enough, just take random ones
+                if len(recommended_rooms) < 3:
+                     recommended_rooms = all_rooms[:4]
+
+        # Check liked rooms
         liked_room_ids = []
         if 'user' in session:
             user_id = session['user']
@@ -66,15 +93,16 @@ def index():
             liked_room_ids = [item['room_id'] for item in wishlist_res.data]
 
     except Exception as e:
-        rooms = []
-        liked_room_ids = []
         print(f"Error fetching rooms: {e}")
-        
+        all_rooms = []
+
     return render_template('index.html', 
-                         rooms=rooms, 
+                         rooms=all_rooms,
+                         featured_rooms=featured_rooms,
+                         recently_viewed_rooms=recently_viewed_rooms,
+                         recommended_rooms=recommended_rooms,
                          liked_room_ids=liked_room_ids, 
-                         search_query=search_query,
-                         showing_recommendations=showing_recommendations)
+                         search_query=search_query)
 
 @app.route('/wishlist')
 @login_required
@@ -217,7 +245,6 @@ def upload():
 @app.route('/edit_room/<int:room_id>', methods=['GET', 'POST'])
 @login_required
 def edit_room(room_id):
-    # 1. Fetch room & Verify Owner
     try:
         response = supabase.table('rooms').select("*").eq('id', room_id).single().execute()
         room = response.data
@@ -225,12 +252,10 @@ def edit_room(room_id):
         flash("Room not found.", "error")
         return redirect(url_for('profile'))
 
-    # Check ownership
     if str(room['owner_id']) != str(session['user']):
         flash("You can only edit your own rooms.", "error")
         return redirect(url_for('profile'))
 
-    # 2. Handle Update
     if request.method == 'POST':
         try:
             update_data = {
@@ -252,20 +277,15 @@ def edit_room(room_id):
 @login_required
 def delete_room(room_id):
     try:
-        # Fetch room to check ownership
         response = supabase.table('rooms').select("*").eq('id', room_id).single().execute()
         room = response.data
         
-        # Check ownership
         if str(room['owner_id']) != str(session['user']):
             flash("Unauthorized action.", "error")
             return redirect(url_for('profile'))
 
-        # Delete related items first (bookings and wishlist) to prevent foreign key errors
         supabase.table('bookings').delete().eq('room_id', room_id).execute()
         supabase.table('wishlist').delete().eq('room_id', room_id).execute()
-        
-        # Delete the room
         supabase.table('rooms').delete().eq('id', room_id).execute()
         
         flash("Room deleted successfully.", "info")
@@ -281,7 +301,16 @@ def room_details(room_id):
         room = response.data
         full_rent = float(room['price_per_month'])
         lock_amount = round(full_rent * 0.05, 2)
-        visit_fee = 50 
+        visit_fee = 50
+        
+        viewed = session.get('recently_viewed', [])
+        if room_id in viewed:
+            viewed.remove(room_id)
+        viewed.insert(0, room_id)
+        viewed = viewed[:8]
+        session['recently_viewed'] = viewed
+        session.modified = True
+        
         return render_template('room_details.html', room=room, lock_amount=lock_amount, visit_fee=visit_fee)
     except Exception as e:
         flash("Room not found.", "error")
@@ -309,6 +338,20 @@ def book_room(room_id):
     except Exception as e:
         flash(f"Booking failed: {e}", "error")
         return redirect(url_for('room_details', room_id=room_id))
+
+# --- NEW API FOR AUTOCOMPLETE ---
+@app.route('/api/locations')
+def get_locations():
+    """Returns a list of unique addresses/locations from the database for autocomplete."""
+    try:
+        response = supabase.table('rooms').select('address').execute()
+        # Filter distinct addresses to prevent duplicates in the dropdown
+        # Sort them for better user experience
+        addresses = sorted(list(set(row['address'] for row in response.data if row.get('address'))))
+        return jsonify(addresses)
+    except Exception as e:
+        print(f"Error fetching locations: {e}")
+        return jsonify([])
 
 if __name__ == '__main__':
     app.run(debug=True)
