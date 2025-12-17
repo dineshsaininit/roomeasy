@@ -18,6 +18,41 @@
         <label>Image URL</label>
         <input type="text" name="image_url" placeholder="https://..." required>
         
+        <!-- NEW SECTION: Amenities Selection -->
+        <label style="margin-top: 20px; margin-bottom: 10px;">What this place offers</label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
+            <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" name="amenities" value="Wifi" style="width: auto; margin: 0;"> Wifi
+            </label>
+            <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" name="amenities" value="Air Conditioning" style="width: auto; margin: 0;"> Air Conditioning
+            </label>
+            <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" name="amenities" value="Free Parking" style="width: auto; margin: 0;"> Free Parking
+            </label>
+            <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" name="amenities" value="Attached Washroom" style="width: auto; margin: 0;"> Attached Washroom
+            </label>
+            <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" name="amenities" value="Kitchen" style="width: auto; margin: 0;"> Kitchen
+            </label>
+            <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" name="amenities" value="TV" style="width: auto; margin: 0;"> TV
+            </label>
+            <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" name="amenities" value="Power Backup" style="width: auto; margin: 0;"> Power Backup
+            </label>
+            <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" name="amenities" value="Washing Machine" style="width: auto; margin: 0;"> Washing Machine
+            </label>
+            <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" name="amenities" value="Geyser" style="width: auto; margin: 0;"> Geyser
+            </label>
+            <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" name="amenities" value="Lift" style="width: auto; margin: 0;"> Lift
+            </label>
+        </div>
+        
         <label>Description</label>
         <textarea name="description" rows="5" placeholder="Tell us about the room amenities..."></textarea>
 

@@ -27,6 +27,43 @@
                 <img src="{{ room.image_url }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #eee;">
             </div>
 
+            <!-- NEW SECTION: Amenities Selection (With pre-filled values) -->
+            {% set current_amenities = room.amenities if room.amenities else [] %}
+            
+            <label style="margin-top: 20px; margin-bottom: 10px;">What this place offers</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
+                <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" name="amenities" value="Wifi" {% if 'Wifi' in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> Wifi
+                </label>
+                <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" name="amenities" value="Air Conditioning" {% if 'Air Conditioning' in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> Air Conditioning
+                </label>
+                <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" name="amenities" value="Free Parking" {% if 'Free Parking' in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> Free Parking
+                </label>
+                <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" name="amenities" value="Attached Washroom" {% if 'Attached Washroom' in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> Attached Washroom
+                </label>
+                <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" name="amenities" value="Kitchen" {% if 'Kitchen' in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> Kitchen
+                </label>
+                <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" name="amenities" value="TV" {% if 'TV' in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> TV
+                </label>
+                <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" name="amenities" value="Power Backup" {% if 'Power Backup' in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> Power Backup
+                </label>
+                <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" name="amenities" value="Washing Machine" {% if 'Washing Machine' in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> Washing Machine
+                </label>
+                <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" name="amenities" value="Geyser" {% if 'Geyser' in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> Geyser
+                </label>
+                <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                    <input type="checkbox" name="amenities" value="Lift" {% if 'Lift' in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> Lift
+                </label>
+            </div>
+
             <label>Description</label>
             <textarea name="description" rows="6" required style="width: 100%; padding: 14px; border: 1px solid #b0b0b0; border-radius: 8px; font-family: inherit;">{{ room.description }}</textarea>
 

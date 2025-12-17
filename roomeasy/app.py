@@ -271,6 +271,9 @@ def upload():
         price = float(request.form.get('price'))
         desc = request.form.get('description')
         image_url = request.form.get('image_url')
+        
+        # Capture list of selected amenities
+        amenities = request.form.getlist('amenities')
 
         data = {
             "owner_id": session['user'],
@@ -279,7 +282,8 @@ def upload():
             "price_per_month": price,
             "description": desc,
             "image_url": image_url,
-            "status": "available"
+            "status": "available",
+            "amenities": amenities # Save amenities to DB
         }
         try:
             supabase.table('rooms').insert(data).execute()
@@ -306,12 +310,16 @@ def edit_room(room_id):
 
     if request.method == 'POST':
         try:
+            # Capture updated amenities list
+            amenities = request.form.getlist('amenities')
+
             update_data = {
                 "title": request.form.get('title'),
                 "address": request.form.get('address'),
                 "price_per_month": float(request.form.get('price')),
                 "description": request.form.get('description'),
-                "image_url": request.form.get('image_url')
+                "image_url": request.form.get('image_url'),
+                "amenities": amenities # Update amenities
             }
             supabase.table('rooms').update(update_data).eq('id', room_id).execute()
             flash("Room updated successfully!", "success")

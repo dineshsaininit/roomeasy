@@ -197,3 +197,5 @@ create table public.wishlist (
 
 -- 2. Disable RLS for easier access via API (since we handle auth in Python)
 alter table public.wishlist disable row level security;
+
+ALTER TABLE public.rooms ADD COLUMN IF NOT EXISTS amenities text[];
