@@ -46,6 +46,9 @@ def index():
         base_query = supabase.table('rooms').select("*").eq('status', 'available')
         
         if search_query:
+            # Store location in session for future recommendations
+            session['user_location'] = search_query
+
             # SEARCH MODE: Filter by address OR title
             filter_condition = f"address.ilike.%{search_query}%,title.ilike.%{search_query}%"
             response = base_query.or_(filter_condition).execute()
@@ -68,24 +71,69 @@ def index():
             # B. RECENTLY VIEWED (From Session)
             recent_ids = session.get('recently_viewed', [])
             if recent_ids:
-                # Fetch specific IDs. 
-                # Note: 'in_' expects a list. We filter from all_rooms to save an API call 
-                # or make a new call if you prefer strict freshness.
+                # Fetch rooms and preserve order
                 recently_viewed_rooms = [r for r in all_rooms if r['id'] in recent_ids]
-                # Reverse to show newest viewed first
-                recently_viewed_rooms.reverse()
+                # Sort to ensure they appear in the order they were viewed (most recent first)
+                recently_viewed_rooms.sort(key=lambda r: recent_ids.index(r['id']))
 
             # C. RECOMMENDED / LOCATION BASED
-            # For demo: Pick a "City" from the first room and show others from there
-            if len(all_rooms) > 0:
-                # Try to find a popular location from the data
-                sample_city = all_rooms[0]['address'].split(',')[-1].strip() # Very rough city extraction
-                recommended_rooms = [r for r in all_rooms if sample_city.lower() in r['address'].lower()]
-                # If we didn't find enough, just take random ones
-                if len(recommended_rooms) < 3:
-                     recommended_rooms = all_rooms[:4]
+            # Logic: If user has viewed rooms, recommend others in the SAME location.
+            
+            recent_location_keywords = []
+            
+            # 1. Extract location from most recent view
+            if recently_viewed_rooms:
+                last_room = recently_viewed_rooms[0] # Index 0 is most recent
+                if last_room.get('address'):
+                    # Assume typical format "Street, Area, City" -> take last part
+                    parts = last_room['address'].split(',')
+                    if parts:
+                        recent_location_keywords.append(parts[-1].strip().lower())
+                    # Also consider the part before (e.g., specific area)
+                    if len(parts) > 1:
+                        recent_location_keywords.append(parts[-2].strip().lower())
 
-        # Check liked rooms
+            # 2. Filter all_rooms based on these keywords
+            if recent_location_keywords:
+                viewed_ids = set(r['id'] for r in recently_viewed_rooms)
+                
+                # Find matches
+                for room in all_rooms:
+                    # Skip if already viewed
+                    if room['id'] in viewed_ids:
+                        continue
+                        
+                    # Check if room address matches recent location
+                    address_lower = room.get('address', '').lower()
+                    if any(kw in address_lower for kw in recent_location_keywords):
+                        recommended_rooms.append(room)
+                
+                # If we found matches, great! If not enough, fill with others.
+                if len(recommended_rooms) < 5:
+                    # Find random rooms not already recommended or viewed
+                    remaining = [r for r in all_rooms if r['id'] not in viewed_ids and r not in recommended_rooms]
+                    if remaining:
+                        recommended_rooms.extend(random.sample(remaining, min(len(remaining), 5 - len(recommended_rooms))))
+            else:
+                # No history? Try to use session location from previous searches
+                user_loc = session.get('user_location')
+                if user_loc:
+                    # Filter by stored location
+                    for room in all_rooms:
+                        if user_loc.lower() in room.get('address', '').lower():
+                            recommended_rooms.append(room)
+                    
+                    # If not enough matches, fill with random
+                    if len(recommended_rooms) < 5:
+                         remaining = [r for r in all_rooms if r not in recommended_rooms]
+                         if remaining:
+                            recommended_rooms.extend(random.sample(remaining, min(len(remaining), 5 - len(recommended_rooms))))
+                else:
+                    # Totally new user? Just show a diverse mix
+                    if len(all_rooms) > 0:
+                        recommended_rooms = random.sample(all_rooms, min(len(all_rooms), 8))
+
+        # Check liked rooms for the heart icon
         liked_room_ids = []
         if 'user' in session:
             user_id = session['user']
