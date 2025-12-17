@@ -254,6 +254,7 @@
         display: flex; flex-direction: column; align-items: center; gap: 10px;
         min-width: 64px; cursor: pointer; opacity: 0.5; transition: all 0.3s;
         border-bottom: 2px solid transparent; padding-bottom: 10px;
+        text-decoration: none; color: var(--gray);
     }
     .category-item:hover, .category-item.active { opacity: 1; transform: scale(1.1); color: var(--dark); }
     .category-item.active { border-bottom-color: var(--dark); }
@@ -319,8 +320,8 @@
 {% block content %}
 <div class="front-page-container">
 
-    <!-- 1. HERO SLIDESHOW -->
-    {% if not search_query and featured_rooms %}
+    <!-- 1. HERO SLIDESHOW (Hidden when filtering) -->
+    {% if not search_query and not filter_type and featured_rooms %}
     <div class="hero-section">
         <!-- Hero Navigation Buttons -->
         <button class="hero-nav-btn prev" onclick="changeSlide(-1)"><i class="fas fa-chevron-left"></i></button>
@@ -342,13 +343,32 @@
 
     <!-- 2. CATEGORIES (Sticky) -->
     <div class="categories">
-        <div class="category-item active"><i class="fas fa-th-large"></i><span>All</span></div>
-        <div class="category-item"><i class="fas fa-map-marked-alt"></i><span>Near Me</span></div>
-        <div class="category-item"><i class="fas fa-fire"></i><span>Trending</span></div>
-        <div class="category-item"><i class="fas fa-home"></i><span>Rooms</span></div>
-        <div class="category-item"><i class="fas fa-city"></i><span>Apartments</span></div>
-        <div class="category-item"><i class="fas fa-umbrella-beach"></i><span>Beach</span></div>
-        <div class="category-item"><i class="fas fa-tree"></i><span>Cabins</span></div>
+        <a href="/" class="category-item {{ 'active' if not search_query and not filter_type else '' }}">
+            <i class="fas fa-th-large"></i><span>All</span>
+        </a>
+        
+        <!-- Near Me triggers the geolocation script from base.html -->
+        <div class="category-item" onclick="detectLocation()">
+            <i class="fas fa-map-marked-alt"></i><span>Near Me</span>
+        </div>
+
+        <a href="/?filter=trending" class="category-item {{ 'active' if filter_type == 'trending' else '' }}">
+            <i class="fas fa-fire"></i><span>Trending</span>
+        </a>
+        
+        <!-- Simple text-based filters for other categories -->
+        <a href="/?q=room" class="category-item">
+            <i class="fas fa-home"></i><span>Rooms</span>
+        </a>
+        <a href="/?q=apartment" class="category-item">
+            <i class="fas fa-city"></i><span>Apartments</span>
+        </a>
+        <a href="/?q=beach" class="category-item">
+            <i class="fas fa-umbrella-beach"></i><span>Beach</span>
+        </a>
+        <a href="/?q=cabin" class="category-item">
+            <i class="fas fa-tree"></i><span>Cabins</span>
+        </a>
     </div>
 
     <!-- Search Feedback & No Results Logic -->
@@ -363,11 +383,16 @@
             </div>
         {% endif %}
     </div>
+    {% elif filter_type == 'trending' %}
+    <div style="padding: 0 60px; margin-top: 20px;">
+        <h2>Trending Homes</h2>
+        <p style="color: var(--gray);">Most popular properties right now.</p>
+    </div>
     {% endif %}
 
 
-    <!-- 3. RECENTLY VIEWED (Horizontal Scroll) -->
-    {% if recently_viewed_rooms and not search_query %}
+    <!-- 3. RECENTLY VIEWED (Horizontal Scroll) - Hide if filtering -->
+    {% if recently_viewed_rooms and not search_query and not filter_type %}
     <div class="section-header">
         <div>
             <h2>Recently Viewed</h2>
@@ -401,8 +426,8 @@
 
 
     <!-- 4. RECOMMENDED / LOCATION BASED (Horizontal Scroll) -->
-    <!-- Modified logic: Show if search is empty OR if search matches nothing (so we show fallback) -->
-    {% if recommended_rooms and (not search_query or not rooms) %}
+    <!-- Modified logic: Show if search/filter is empty OR if search matches nothing (so we show fallback) -->
+    {% if recommended_rooms and (not search_query or not rooms) and not filter_type %}
     <div class="section-header">
         <div>
             <h2>Find your place to live</h2>
@@ -438,7 +463,9 @@
     <!-- 5. ALL LISTINGS GRID -->
     {% if rooms %}
     <div class="section-header">
-        <h2>Explore All</h2>
+        {% if not search_query and not filter_type %}
+            <h2>Explore All</h2>
+        {% endif %}
     </div>
     <div class="listings-grid">
         {% for room in rooms %}

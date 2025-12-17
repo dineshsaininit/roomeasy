@@ -34,6 +34,7 @@ def login_required(f):
 @app.route('/')
 def index():
     search_query = request.args.get('q', '').strip()
+    filter_type = request.args.get('filter', '').strip() # Capture filter parameter
     
     # Initialize lists
     featured_rooms = []
@@ -58,6 +59,14 @@ def index():
             if not all_rooms:
                 response = supabase.table('rooms').select("*").eq('status', 'available').limit(12).execute()
                 recommended_rooms = response.data
+        
+        elif filter_type == 'trending':
+            # TRENDING MODE: For now, we simulate trending by shuffling available rooms
+            # In a real app, you would sort by booking_count or view_count
+            response = base_query.execute()
+            all_rooms = response.data
+            random.shuffle(all_rooms)
+            
         else:
             # HOME PAGE MODE
             response = base_query.execute()
@@ -85,11 +94,9 @@ def index():
             if recently_viewed_rooms:
                 last_room = recently_viewed_rooms[0] # Index 0 is most recent
                 if last_room.get('address'):
-                    # Assume typical format "Street, Area, City" -> take last part
                     parts = last_room['address'].split(',')
                     if parts:
                         recent_location_keywords.append(parts[-1].strip().lower())
-                    # Also consider the part before (e.g., specific area)
                     if len(parts) > 1:
                         recent_location_keywords.append(parts[-2].strip().lower())
 
@@ -99,37 +106,29 @@ def index():
                 
                 # Find matches
                 for room in all_rooms:
-                    # Skip if already viewed
                     if room['id'] in viewed_ids:
                         continue
                         
-                    # Check if room address matches recent location
                     address_lower = room.get('address', '').lower()
                     if any(kw in address_lower for kw in recent_location_keywords):
                         recommended_rooms.append(room)
                 
-                # If we found matches, great! If not enough, fill with others.
                 if len(recommended_rooms) < 5:
-                    # Find random rooms not already recommended or viewed
                     remaining = [r for r in all_rooms if r['id'] not in viewed_ids and r not in recommended_rooms]
                     if remaining:
                         recommended_rooms.extend(random.sample(remaining, min(len(remaining), 5 - len(recommended_rooms))))
             else:
-                # No history? Try to use session location from previous searches
                 user_loc = session.get('user_location')
                 if user_loc:
-                    # Filter by stored location
                     for room in all_rooms:
                         if user_loc.lower() in room.get('address', '').lower():
                             recommended_rooms.append(room)
                     
-                    # If not enough matches, fill with random
                     if len(recommended_rooms) < 5:
                          remaining = [r for r in all_rooms if r not in recommended_rooms]
                          if remaining:
                             recommended_rooms.extend(random.sample(remaining, min(len(remaining), 5 - len(recommended_rooms))))
                 else:
-                    # Totally new user? Just show a diverse mix
                     if len(all_rooms) > 0:
                         recommended_rooms = random.sample(all_rooms, min(len(all_rooms), 8))
 
@@ -150,7 +149,8 @@ def index():
                          recently_viewed_rooms=recently_viewed_rooms,
                          recommended_rooms=recommended_rooms,
                          liked_room_ids=liked_room_ids, 
-                         search_query=search_query)
+                         search_query=search_query,
+                         filter_type=filter_type) # Pass filter_type to template
 
 @app.route('/wishlist')
 @login_required
@@ -271,8 +271,6 @@ def upload():
         price = float(request.form.get('price'))
         desc = request.form.get('description')
         image_url = request.form.get('image_url')
-        
-        # Capture list of selected amenities
         amenities = request.form.getlist('amenities')
 
         data = {
@@ -283,7 +281,7 @@ def upload():
             "description": desc,
             "image_url": image_url,
             "status": "available",
-            "amenities": amenities # Save amenities to DB
+            "amenities": amenities
         }
         try:
             supabase.table('rooms').insert(data).execute()
@@ -310,16 +308,14 @@ def edit_room(room_id):
 
     if request.method == 'POST':
         try:
-            # Capture updated amenities list
             amenities = request.form.getlist('amenities')
-
             update_data = {
                 "title": request.form.get('title'),
                 "address": request.form.get('address'),
                 "price_per_month": float(request.form.get('price')),
                 "description": request.form.get('description'),
                 "image_url": request.form.get('image_url'),
-                "amenities": amenities # Update amenities
+                "amenities": amenities
             }
             supabase.table('rooms').update(update_data).eq('id', room_id).execute()
             flash("Room updated successfully!", "success")
@@ -395,14 +391,10 @@ def book_room(room_id):
         flash(f"Booking failed: {e}", "error")
         return redirect(url_for('room_details', room_id=room_id))
 
-# --- NEW API FOR AUTOCOMPLETE ---
 @app.route('/api/locations')
 def get_locations():
-    """Returns a list of unique addresses/locations from the database for autocomplete."""
     try:
         response = supabase.table('rooms').select('address').execute()
-        # Filter distinct addresses to prevent duplicates in the dropdown
-        # Sort them for better user experience
         addresses = sorted(list(set(row['address'] for row in response.data if row.get('address'))))
         return jsonify(addresses)
     except Exception as e:
