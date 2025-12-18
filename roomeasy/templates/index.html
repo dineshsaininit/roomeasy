@@ -15,149 +15,250 @@
         to { opacity: 1; transform: translateY(0); }
     }
     
+    @keyframes slideInLeft {
+        from { opacity: 0; transform: translateX(-50px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
     @keyframes slideInRight {
         from { opacity: 0; transform: translateX(50px); }
         to { opacity: 1; transform: translateX(0); }
     }
 
-    /* --- Hero Slideshow --- */
+    @keyframes zoomIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Floating Animation for Background Elements */
+    @keyframes float {
+        0% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(5deg); }
+        100% { transform: translateY(0px) rotate(0deg); }
+    }
+
+    /* --- Hero Slideshow (Redesigned) --- */
     .hero-section {
         position: relative;
         width: 100%;
-        height: 70vh; /* More immersive height */
-        min-height: 550px;
-        overflow: hidden;
+        height: 600px; /* Fixed height for consistency */
         margin-bottom: 50px;
-        background: #000;
-        border-radius: 0 0 32px 32px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        
+        /* Cool Modern Background - Enhanced Gradient */
+        background: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
+        /* Optional subtle pattern overlay */
+        background-image: 
+            radial-gradient(at 0% 0%, rgba(255, 237, 240, 0.6) 0px, transparent 50%),
+            radial-gradient(at 100% 0%, rgba(235, 245, 255, 0.6) 0px, transparent 50%),
+            radial-gradient(at 100% 100%, rgba(255, 245, 235, 0.4) 0px, transparent 50%);
+        
+        border-radius: 0 0 40px 40px; /* Softer curve */
+        box-shadow: 0 20px 60px -10px rgba(0,0,0,0.08); /* Sophisticated shadow */
+        overflow: hidden;
+    }
+
+    /* Decorative Abstract Blobs for "Cool" effect - Animated */
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: -100px; right: -50px;
+        width: 600px; height: 600px;
+        background: linear-gradient(45deg, rgba(255, 56, 92, 0.06), rgba(255, 100, 130, 0.06));
+        border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+        z-index: 0;
+        pointer-events: none;
+        animation: float 8s ease-in-out infinite;
+    }
+
+    .hero-section::after {
+        content: '';
+        position: absolute;
+        bottom: -120px; left: -80px;
+        width: 500px; height: 500px;
+        background: linear-gradient(45deg, rgba(64, 158, 255, 0.08), rgba(100, 200, 255, 0.08));
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+        z-index: 0;
+        pointer-events: none;
+        animation: float 10s ease-in-out infinite reverse;
     }
 
     .slide {
         position: absolute;
         top: 0; left: 0; width: 100%; height: 100%;
-        opacity: 0;
-        transition: opacity 1s ease-in-out, transform 1s ease-in-out;
         display: flex;
         align-items: center;
-        justify-content: center;
-        transform: scale(1.1); /* Start slightly zoomed out */
+        justify-content: space-between;
+        padding: 0 100px; /* More breathing room */
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        gap: 60px;
+        z-index: 1; /* Sit above the background blobs */
     }
 
     .slide.active { 
         opacity: 1; 
-        transform: scale(1); /* Zoom to normal */
-        transition: opacity 0.8s ease-out, transform 6s ease-out; /* Smooth slow zoom */
+        pointer-events: auto;
     }
 
-    .slide-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    /* Gradient Overlay */
-    .slide-overlay {
-        position: absolute;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 100%);
-        z-index: 1;
-    }
-
-    .slide-content {
-        position: absolute;
-        text-align: center;
-        color: white;
-        z-index: 2;
-        max-width: 1000px;
-        padding: 40px;
-    }
-
-    .slide-content h1 {
-        font-size: 5rem;
-        font-weight: 800;
-        margin-bottom: 20px;
-        letter-spacing: -2px;
-        text-shadow: 0 4px 30px rgba(0,0,0,0.4);
+    /* Column 1: Image (Left) */
+    .slide-img-col {
+        flex: 1.3;
+        height: 85%;
+        display: flex;
+        align-items: center;
+        justify-content: center; /* Center image in its box */
         opacity: 0;
-        transform: translateY(30px);
-        transition: all 0.8s ease-out 0.3s;
-    }
-
-    .slide-content p {
-        font-size: 1.6rem;
-        margin-bottom: 40px;
-        font-weight: 500;
-        text-shadow: 0 2px 15px rgba(0,0,0,0.4);
-        opacity: 0;
-        transform: translateY(30px);
-        transition: all 0.8s ease-out 0.5s;
-    }
-
-    .slide.active .slide-content h1,
-    .slide.active .slide-content p {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    .slide-btn {
-        display: inline-block;
-        background: white;
-        color: var(--dark);
-        padding: 18px 48px;
-        border-radius: 50px;
-        font-weight: 700;
-        font-size: 1.1rem;
-        text-decoration: none;
-        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        opacity: 0;
-        transform: translateY(30px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        perspective: 1000px; /* For 3D feel */
     }
     
-    .slide.active .slide-btn {
-        opacity: 1;
-        transform: translateY(0);
-        transition: all 0.8s ease-out 0.7s;
+    .slide-img {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        border-radius: 24px;
+        /* Refined shadow */
+        box-shadow: 
+            0 20px 40px rgba(0,0,0,0.1),
+            0 10px 15px rgba(0,0,0,0.05); 
+        transform: translateX(-60px) rotateY(10deg);
+        transition: transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+        background: white; /* Fallback background for transparent PNGs */
     }
 
-    .slide-btn:hover { 
-        transform: translateY(-5px) scale(1.05); 
-        background: var(--primary);
-        color: white;
-        box-shadow: 0 15px 30px rgba(255, 56, 92, 0.4);
+    /* Column 2: Details (Middle) */
+    .slide-details-col {
+        flex: 1;
+        text-align: left;
+        color: var(--dark);
+        opacity: 0;
+        transform: translateY(30px);
     }
+
+    .slide-details-col h1 {
+        font-size: 3.5rem; /* Larger Title */
+        font-weight: 800;
+        margin-bottom: 20px;
+        line-height: 1.1;
+        color: var(--dark);
+        letter-spacing: -1px;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Very subtle text shadow */
+    }
+
+    .slide-details-col p.location {
+        font-size: 1.3rem;
+        color: var(--gray);
+        font-weight: 500;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .slide-details-col p.location i { color: var(--primary); }
+
+    .slide-details-col .price-tag {
+        font-size: 1.2rem; 
+        margin-top: 20px;
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(5px);
+        padding: 10px 20px;
+        border-radius: 12px;
+        display: inline-block;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    /* Column 3: Action (Right) */
+    .slide-action-col {
+        flex: 0.6;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        opacity: 0;
+        transform: translateX(60px);
+    }
+
+    /* --- Animation Activators --- */
+    .slide.active .slide-img-col {
+        opacity: 1;
+        animation: fadeIn 0.9s ease-out forwards;
+    }
+    .slide.active .slide-img {
+        transform: translateX(0) rotateY(0deg);
+        animation: slideInLeft 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    .slide.active .slide-details-col {
+        opacity: 1;
+        transform: translateY(0);
+        transition: all 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s; /* Smoother easing */
+    }
+
+    .slide.active .slide-action-col {
+        opacity: 1;
+        transform: translateX(0);
+        transition: all 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.4s;
+    }
+
+    /* Refined Button */
+    .slide-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--dark);
+        color: white;
+        padding: 22px 48px;
+        border-radius: 50px; /* Pill shape */
+        font-weight: 700;
+        font-size: 1.15rem;
+        text-decoration: none;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        white-space: nowrap;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .slide-btn:hover { 
+        transform: translateY(-3px) scale(1.02); 
+        background: var(--primary);
+        box-shadow: 0 20px 35px rgba(255, 56, 92, 0.35);
+    }
+    .slide-btn i { margin-left: 12px; transition: transform 0.3s; }
+    .slide-btn:hover i { transform: translateX(5px); }
 
     /* --- Hero Navigation Buttons --- */
     .hero-nav-btn {
         position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(8px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: white;
-        width: 60px;
-        height: 60px;
+        bottom: 40px; 
+        width: 56px;
+        height: 56px;
         border-radius: 50%;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         z-index: 10;
         font-size: 20px;
-        transition: all 0.3s ease;
+        color: var(--dark);
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
     
     .hero-nav-btn:hover {
-        background: white;
-        color: var(--dark);
-        transform: translateY(-50%) scale(1.1);
-        box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+        background: var(--primary);
+        color: white;
+        transform: scale(1.15) rotate(0deg);
+        box-shadow: 0 12px 25px rgba(255, 56, 92, 0.3);
+        border-color: transparent;
     }
 
-    .hero-nav-btn.prev { left: 40px; }
-    .hero-nav-btn.next { right: 40px; }
+    .hero-nav-btn.prev { right: 120px; left: auto; }
+    .hero-nav-btn.next { right: 40px; left: auto; }
 
 
     /* --- Section Headers --- */
@@ -304,15 +405,29 @@
     @keyframes heart-bounce { 0% { transform: scale(1); } 40% { transform: scale(1.6); } 70% { transform: scale(0.85); } 100% { transform: scale(1); } }
     .favorite-btn.animating i { animation: heart-bounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
+    @media (max-width: 1024px) {
+        .hero-section { height: auto; padding: 60px 0; border-radius: 0 0 24px 24px; }
+        .slide { flex-direction: column; text-align: center; padding: 0 24px; gap: 30px; position: relative; display: none; opacity: 1; }
+        .slide.active { display: flex; }
+        
+        .slide-img-col { width: 100%; height: 320px; margin-bottom: 10px; flex: initial; transform: none !important; perspective: none; }
+        .slide-img { max-height: 100%; width: auto; transform: none !important; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        
+        .slide-details-col { text-align: center; width: 100%; transform: none !important; flex: initial; }
+        .slide-details-col h1 { font-size: 2.5rem; margin-bottom: 12px; }
+        .slide-details-col p.location { justify-content: center; font-size: 1.1rem; }
+        
+        .slide-action-col { width: 100%; justify-content: center; margin-top: 10px; transform: none !important; flex: initial; }
+        
+        .hero-nav-btn { bottom: 20px; width: 48px; height: 48px; font-size: 16px; }
+        .hero-nav-btn.prev { left: 50%; right: auto; margin-left: -60px; }
+        .hero-nav-btn.next { right: 50%; left: auto; margin-right: -60px; }
+    }
+    
     @media (max-width: 768px) {
         .section-header, .scroll-wrapper, .listings-grid, .categories { padding-left: 24px; padding-right: 24px; }
-        .hero-section { height: 450px; border-radius: 0; margin-bottom: 30px; }
-        .slide-content h1 { font-size: 2.5rem; letter-spacing: -1px; }
-        .slide-content p { font-size: 1.1rem; }
-        .hero-nav-btn { width: 40px; height: 40px; font-size: 16px; }
-        .hero-nav-btn.prev { left: 15px; }
-        .hero-nav-btn.next { right: 15px; }
         .nav-btn { display: none; } /* Hide list nav buttons on mobile */
+        .hero-section { height: auto; padding-bottom: 80px; }
     }
 </style>
 {% endblock %}
@@ -320,24 +435,39 @@
 {% block content %}
 <div class="front-page-container">
 
-    <!-- 1. HERO SLIDESHOW (Hidden when filtering) -->
+    <!-- 1. HERO SLIDESHOW (Redesigned) -->
     {% if not search_query and not filter_type and featured_rooms %}
     <div class="hero-section">
-        <!-- Hero Navigation Buttons -->
-        <button class="hero-nav-btn prev" onclick="changeSlide(-1)"><i class="fas fa-chevron-left"></i></button>
-        <button class="hero-nav-btn next" onclick="changeSlide(1)"><i class="fas fa-chevron-right"></i></button>
-
         {% for room in featured_rooms %}
         <div class="slide {% if loop.first %}active{% endif %}">
-            <img src="{{ room.image_url }}" class="slide-img" onerror="this.src='https://via.placeholder.com/1600x900'">
-            <div class="slide-overlay"></div>
-            <div class="slide-content">
-                <h1>Find your place to stay</h1>
-                <p>Discover {{ room.title }} and other amazing homes.</p>
-                <a href="/room/{{ room.id }}" class="slide-btn">Explore Now</a>
+            
+            <!-- Left: Image (Original size constrained) -->
+            <div class="slide-img-col">
+                <img src="{{ room.image_url }}" class="slide-img" onerror="this.src='https://via.placeholder.com/800x600'">
             </div>
+
+            <!-- Middle: Details -->
+            <div class="slide-details-col">
+                <h1>{{ room.title }}</h1>
+                <p class="location"><i class="fas fa-map-marker-alt"></i> {{ room.address.split(',')[0] if ',' in room.address else room.address }}</p>
+                <div class="price-tag">
+                    Starting at <span style="color:var(--primary); font-weight:800; font-size:1.1em;">${{ room.price_per_month }}</span><span style="color:var(--gray); font-size:0.9em;">/month</span>
+                </div>
+            </div>
+
+            <!-- Right: Action -->
+            <div class="slide-action-col">
+                <a href="/room/{{ room.id }}" class="slide-btn">
+                    Explore Now <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+
         </div>
         {% endfor %}
+
+        <!-- Navigation Buttons (Moved to bottom right in CSS) -->
+        <button class="hero-nav-btn prev" onclick="changeSlide(-1)"><i class="fas fa-chevron-left"></i></button>
+        <button class="hero-nav-btn next" onclick="changeSlide(1)"><i class="fas fa-chevron-right"></i></button>
     </div>
     {% endif %}
 
