@@ -266,7 +266,6 @@
                     <i class="fas fa-map-marker-alt"></i> 
                     {{ room.address }}
                 </p>
-                <!-- Removed "Entire home" and Rating section as requested -->
             </div>
 
             <!-- Right: Action Card -->
@@ -275,7 +274,6 @@
                     <!-- Price Header -->
                     <div class="booking-header">
                         <div class="booking-price">₹{{ room.price_per_month }} <span>/month</span></div>
-                        <!-- Rating removed as requested -->
                     </div>
 
                     <!-- 3 Selection Options -->
@@ -319,7 +317,6 @@
     </div>
 
     <!-- GALLERY STRIP (Thumbnails) -->
-    <!-- Assuming backend passes a list of images. If not, we simulate with the main image for demo -->
     <div class="gallery-strip">
         <!-- Main Image Thumb -->
         <button class="thumb-btn active" onclick="updateHeroImage('{{ room.image_url }}', this)">
@@ -355,17 +352,22 @@
             <!-- Improved Host Card with "Real Detail" look -->
             <div class="host-card" style="margin-bottom: 40px;">
                 <div class="host-avatar">
-                    <i class="fas fa-user"></i>
+                    {% if host_name %}
+                        {{ host_name[0] | upper }}
+                    {% else %}
+                        <i class="fas fa-user"></i>
+                    {% endif %}
                     <div class="verified-badge"><i class="fas fa-check"></i></div>
                 </div>
                 <div class="host-info">
-                    <h3>Hosted by Owner #{{ room.owner_id }}</h3>
+                    <!-- Display Real Name if available, otherwise fallback to "Host" -->
+                    <h3>Hosted by {{ host_name if host_name else 'Host' }}</h3>
                     <div class="host-meta">
-                        <span><i class="fas fa-star" style="color:#ff385c;"></i> 4.8 Rating</span>
+                        <!-- Rating removed as requested -->
                         <span><i class="fas fa-shield-alt" style="color:#666;"></i> Identity Verified</span>
                     </div>
                     <p style="color:#666; margin-bottom:12px; font-size:0.95rem;">
-                        Superhost with 5+ years of experience. I love meeting new people and ensuring they have a comfortable stay.
+                        Join Date: {{ host_joined_date if host_joined_date else '2023' }}
                     </p>
                     <div class="host-actions">
                         <button class="host-btn" onclick="window.location.href='mailto:{{ room.owner_email }}'">Contact Host</button>
