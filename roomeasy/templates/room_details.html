@@ -212,6 +212,7 @@
     }
     .host-avatar { 
         width: 70px; height: 70px; background: #f0f0f0; border-radius: 50%; 
+        overflow: hidden; /* Ensures image stays in circle */
         display: flex; align-items: center; justify-content: center; 
         font-size: 28px; color: #555; position: relative;
     }
@@ -220,6 +221,7 @@
         background: #ff385c; color: white; border: 2px solid white;
         width: 24px; height: 24px; border-radius: 50%;
         display: flex; align-items: center; justify-content: center; font-size: 12px;
+        z-index: 2; /* Ensure badge is above image */
     }
     
     .host-info h3 { margin: 0 0 4px 0; font-size: 1.3rem; color: var(--dark); }
@@ -301,7 +303,7 @@
                         </div>
                     </div>
                     
-                    <a href="mailto:{{ room.owner_email }}?subject=Inquiry about {{ room.title }}" class="action-btn">
+                    <a href="mailto:{{ host_email }}?subject=Inquiry about {{ room.title }}" class="action-btn">
                         Request to Rent
                     </a>
                     
@@ -352,26 +354,31 @@
             <!-- Improved Host Card with "Real Detail" look -->
             <div class="host-card" style="margin-bottom: 40px;">
                 <div class="host-avatar">
-                    {% if host_name %}
-                        {{ host_name[0] | upper }}
+                    {% if host_image %}
+                        <img src="{{ host_image }}" alt="Host" style="width: 100%; height: 100%; object-fit: cover;">
                     {% else %}
-                        <i class="fas fa-user"></i>
+                        {% if host_name %}
+                            {{ host_name[0] | upper }}
+                        {% else %}
+                            <i class="fas fa-user"></i>
+                        {% endif %}
                     {% endif %}
                     <div class="verified-badge"><i class="fas fa-check"></i></div>
                 </div>
                 <div class="host-info">
-                    <!-- Display Real Name if available, otherwise fallback to "Host" -->
-                    <h3>Hosted by {{ host_name if host_name else 'Host' }}</h3>
+                    <!-- Display Real Name from DB -->
+                    <h3>Hosted by {{ host_name }}</h3>
                     <div class="host-meta">
-                        <!-- Rating removed as requested -->
+                        <!-- Rating removed as requested. Only Identity verified remains -->
                         <span><i class="fas fa-shield-alt" style="color:#666;"></i> Identity Verified</span>
                     </div>
                     <p style="color:#666; margin-bottom:12px; font-size:0.95rem;">
-                        Join Date: {{ host_joined_date if host_joined_date else '2023' }}
+                        Join Date: {{ host_joined_date }}
                     </p>
                     <div class="host-actions">
-                        <button class="host-btn" onclick="window.location.href='mailto:{{ room.owner_email }}'">Contact Host</button>
-                        <button class="host-btn">View Profile</button>
+                        <button class="host-btn" onclick="window.location.href='mailto:{{ host_email }}'">Contact Host</button>
+                        <!-- Optional link to profile if you want to implement a public profile page later -->
+                        <!-- <button class="host-btn">View Profile</button> -->
                     </div>
                 </div>
             </div>
@@ -383,12 +390,19 @@
             
             <h3 class="section-title">What this place offers</h3>
             <div class="amenities-list">
-                <div class="amenity-item"><i class="fas fa-wifi"></i> Fast Wifi</div>
-                <div class="amenity-item"><i class="fas fa-parking"></i> Free Parking</div>
-                <div class="amenity-item"><i class="fas fa-snowflake"></i> Air Conditioning</div>
-                <div class="amenity-item"><i class="fas fa-tv"></i> HDTV</div>
-                <div class="amenity-item"><i class="fas fa-kitchen-set"></i> Full Kitchen</div>
-                <div class="amenity-item"><i class="fas fa-paw"></i> Pet Friendly</div>
+                {% if room.amenities %}
+                    {% for amenity in room.amenities %}
+                    <div class="amenity-item"><i class="fas fa-check-circle"></i> {{ amenity }}</div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Fallback default amenities if none in DB -->
+                    <div class="amenity-item"><i class="fas fa-wifi"></i> Fast Wifi</div>
+                    <div class="amenity-item"><i class="fas fa-parking"></i> Free Parking</div>
+                    <div class="amenity-item"><i class="fas fa-snowflake"></i> Air Conditioning</div>
+                    <div class="amenity-item"><i class="fas fa-tv"></i> HDTV</div>
+                    <div class="amenity-item"><i class="fas fa-kitchen-set"></i> Full Kitchen</div>
+                    <div class="amenity-item"><i class="fas fa-paw"></i> Pet Friendly</div>
+                {% endif %}
             </div>
         </div>
 

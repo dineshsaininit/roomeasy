@@ -50,9 +50,6 @@ def index():
 
             # SEARCH OPTIMIZATION:
             # We search across the formatted address, but also explicitly check city/state/nearby columns if they exist
-            # Note: The 'or' syntax in supabase-py for multiple columns can be tricky.
-            # We stick to searching the 'address' column because our upload logic now guarantees
-            # address = "Nearby, City, State". This ensures keywords match correctly.
             
             filter_condition = f"address.ilike.%{search_query}%,title.ilike.%{search_query}%"
             # If you want to search specific new columns, you could add: city.ilike.%{query}%, etc.
@@ -356,6 +353,30 @@ def room_details(room_id):
         lock_amount = round(full_rent * 0.05, 2)
         visit_fee = 50
         
+        # --- NEW: Fetch Host Details ---
+        host_name = "Host"
+        host_joined_date = "2023"
+        host_email = ""
+        host_image = ""
+        
+        try:
+            owner_id = room.get('owner_id')
+            if owner_id:
+                host_res = supabase.table('user_profiles').select("*").eq('id', owner_id).single().execute()
+                if host_res.data:
+                    host_data = host_res.data
+                    host_name = host_data.get('full_name', 'Host')
+                    host_email = host_data.get('email', '')
+                    host_image = host_data.get('profile_image_url', '')
+                    
+                    # Extract year from created_at (format: 2023-12-18T...)
+                    created_at = host_data.get('created_at', '')
+                    if created_at and len(created_at) >= 4:
+                        host_joined_date = created_at[:4]
+        except Exception as e:
+            print(f"Error fetching host details: {e}")
+            # Fallback values already set above
+
         viewed = session.get('recently_viewed', [])
         if room_id in viewed: viewed.remove(room_id)
         viewed.insert(0, room_id)
@@ -363,8 +384,16 @@ def room_details(room_id):
         session['recently_viewed'] = viewed
         session.modified = True
         
-        return render_template('room_details.html', room=room, lock_amount=lock_amount, visit_fee=visit_fee)
+        return render_template('room_details.html', 
+                               room=room, 
+                               lock_amount=lock_amount, 
+                               visit_fee=visit_fee,
+                               host_name=host_name,
+                               host_joined_date=host_joined_date,
+                               host_email=host_email,
+                               host_image=host_image)
     except Exception as e:
+        print(f"Room details error: {e}")
         flash("Room not found.", "error")
         return redirect(url_for('index'))
 

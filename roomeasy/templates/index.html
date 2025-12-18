@@ -338,29 +338,6 @@
         transition: transform 0.3s ease;
     }
     .scroll-card:hover { transform: translateY(-8px); }
-
-    /* --- Categories (Glassmorphism) --- */
-    .categories {
-        display: flex; gap: 40px; padding: 20px 60px;
-        overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid rgba(0,0,0,0.06);
-        position: sticky; top: 80px; 
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        z-index: 90;
-        margin-bottom: 20px;
-    }
-    .categories::-webkit-scrollbar { display: none; }
-    
-    .category-item {
-        display: flex; flex-direction: column; align-items: center; gap: 10px;
-        min-width: 64px; cursor: pointer; opacity: 0.5; transition: all 0.3s;
-        border-bottom: 2px solid transparent; padding-bottom: 10px;
-        text-decoration: none; color: var(--gray);
-    }
-    .category-item:hover, .category-item.active { opacity: 1; transform: scale(1.1); color: var(--dark); }
-    .category-item.active { border-bottom-color: var(--dark); }
-    .category-item i { font-size: 24px; margin-bottom: 4px; }
-    .category-item span { font-size: 13px; font-weight: 600; white-space: nowrap; }
     
     /* --- Standard Grid (All Listings) --- */
     .listings-grid {
@@ -425,7 +402,7 @@
     }
     
     @media (max-width: 768px) {
-        .section-header, .scroll-wrapper, .listings-grid, .categories { padding-left: 24px; padding-right: 24px; }
+        .section-header, .scroll-wrapper, .listings-grid { padding-left: 24px; padding-right: 24px; }
         .nav-btn { display: none; } /* Hide list nav buttons on mobile */
         .hero-section { height: auto; padding-bottom: 80px; }
     }
@@ -451,7 +428,7 @@
                 <h1>{{ room.title }}</h1>
                 <p class="location"><i class="fas fa-map-marker-alt"></i> {{ room.address.split(',')[0] if ',' in room.address else room.address }}</p>
                 <div class="price-tag">
-                    Starting at <span style="color:var(--primary); font-weight:800; font-size:1.1em;">${{ room.price_per_month }}</span><span style="color:var(--gray); font-size:0.9em;">/month</span>
+                    Starting at <span style="color:var(--primary); font-weight:800; font-size:1.1em;">₹{{ room.price_per_month }}</span><span style="color:var(--gray); font-size:0.9em;">/month</span>
                 </div>
             </div>
 
@@ -471,35 +448,7 @@
     </div>
     {% endif %}
 
-    <!-- 2. CATEGORIES (Sticky) -->
-    <div class="categories">
-        <a href="/" class="category-item {{ 'active' if not search_query and not filter_type else '' }}">
-            <i class="fas fa-th-large"></i><span>All</span>
-        </a>
-        
-        <!-- Near Me triggers the geolocation script from base.html -->
-        <div class="category-item" onclick="detectLocation()">
-            <i class="fas fa-map-marked-alt"></i><span>Near Me</span>
-        </div>
-
-        <a href="/?filter=trending" class="category-item {{ 'active' if filter_type == 'trending' else '' }}">
-            <i class="fas fa-fire"></i><span>Trending</span>
-        </a>
-        
-        <!-- Simple text-based filters for other categories -->
-        <a href="/?q=room" class="category-item">
-            <i class="fas fa-home"></i><span>Rooms</span>
-        </a>
-        <a href="/?q=apartment" class="category-item">
-            <i class="fas fa-city"></i><span>Apartments</span>
-        </a>
-        <a href="/?q=beach" class="category-item">
-            <i class="fas fa-umbrella-beach"></i><span>Beach</span>
-        </a>
-        <a href="/?q=cabin" class="category-item">
-            <i class="fas fa-tree"></i><span>Cabins</span>
-        </a>
-    </div>
+    <!-- 2. CATEGORIES Removed as requested -->
 
     <!-- Search Feedback & No Results Logic -->
     {% if search_query %}
@@ -544,7 +493,7 @@
                     <div class="card-info">
                         <h3>{{ room.address }}</h3>
                         <p>{{ room.title }}</p>
-                        <div class="price">${{ room.price_per_month }} <span>month</span></div>
+                        <div class="price">₹{{ room.price_per_month }} <span>month</span></div>
                     </div>
                 </a>
             </div>
@@ -579,7 +528,7 @@
                     <div class="card-info">
                         <h3>{{ room.address }}</h3>
                         <p>{{ room.title }}</p>
-                        <div class="price">${{ room.price_per_month }} <span>month</span></div>
+                        <div class="price">₹{{ room.price_per_month }} <span>month</span></div>
                     </div>
                 </a>
             </div>
@@ -612,7 +561,7 @@
                     <h3>{{ room.address }}</h3>
                 </div>
                 <p>{{ room.title }}</p>
-                <div class="price">${{ room.price_per_month }} <span>month</span></div>
+                <div class="price">₹{{ room.price_per_month }} <span>month</span></div>
             </div>
         </a>
         {% endfor %}
