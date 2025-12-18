@@ -34,105 +34,94 @@ def login_required(f):
 @app.route('/')
 def index():
     search_query = request.args.get('q', '').strip()
-    filter_type = request.args.get('filter', '').strip() # Capture filter parameter
+    filter_type = request.args.get('filter', '').strip()
     
-    # Initialize lists
     featured_rooms = []
     recently_viewed_rooms = []
     recommended_rooms = []
     all_rooms = []
     
     try:
-        # 1. FETCH ALL AVAILABLE ROOMS (Base Dataset)
+        # 1. FETCH ALL AVAILABLE ROOMS
         base_query = supabase.table('rooms').select("*").eq('status', 'available')
         
         if search_query:
-            # Store location in session for future recommendations
             session['user_location'] = search_query
 
-            # SEARCH MODE: Filter by address OR title
+            # SEARCH OPTIMIZATION:
+            # We search across the formatted address, but also explicitly check city/state/nearby columns if they exist
+            # Note: The 'or' syntax in supabase-py for multiple columns can be tricky.
+            # We stick to searching the 'address' column because our upload logic now guarantees
+            # address = "Nearby, City, State". This ensures keywords match correctly.
+            
             filter_condition = f"address.ilike.%{search_query}%,title.ilike.%{search_query}%"
+            # If you want to search specific new columns, you could add: city.ilike.%{query}%, etc.
+            
             response = base_query.or_(filter_condition).execute()
             all_rooms = response.data
             
-            # If no results, show recommendations instead of empty page
             if not all_rooms:
                 response = supabase.table('rooms').select("*").eq('status', 'available').limit(12).execute()
                 recommended_rooms = response.data
         
         elif filter_type == 'trending':
-            # TRENDING MODE: For now, we simulate trending by shuffling available rooms
-            # In a real app, you would sort by booking_count or view_count
             response = base_query.execute()
             all_rooms = response.data
             random.shuffle(all_rooms)
             
         else:
-            # HOME PAGE MODE
+            # HOME PAGE
             response = base_query.execute()
             all_rooms = response.data
             
-            # A. HERO SLIDESHOW (Featured)
-            # Pick 5 random rooms for the main slider
             if len(all_rooms) > 0:
                 featured_rooms = random.sample(all_rooms, min(len(all_rooms), 5))
             
-            # B. RECENTLY VIEWED (From Session)
             recent_ids = session.get('recently_viewed', [])
             if recent_ids:
-                # Fetch rooms and preserve order
                 recently_viewed_rooms = [r for r in all_rooms if r['id'] in recent_ids]
-                # Sort to ensure they appear in the order they were viewed (most recent first)
                 recently_viewed_rooms.sort(key=lambda r: recent_ids.index(r['id']))
 
-            # C. RECOMMENDED / LOCATION BASED
-            # Logic: If user has viewed rooms, recommend others in the SAME location.
-            
+            # Recommendation Logic
             recent_location_keywords = []
-            
-            # 1. Extract location from most recent view
             if recently_viewed_rooms:
-                last_room = recently_viewed_rooms[0] # Index 0 is most recent
-                if last_room.get('address'):
+                last_room = recently_viewed_rooms[0]
+                # improved logic using the new 'city' column if available
+                if last_room.get('city'):
+                    recent_location_keywords.append(last_room['city'].lower())
+                elif last_room.get('address'):
                     parts = last_room['address'].split(',')
-                    if parts:
-                        recent_location_keywords.append(parts[-1].strip().lower())
-                    if len(parts) > 1:
-                        recent_location_keywords.append(parts[-2].strip().lower())
+                    if parts: recent_location_keywords.append(parts[-1].strip().lower())
 
-            # 2. Filter all_rooms based on these keywords
             if recent_location_keywords:
                 viewed_ids = set(r['id'] for r in recently_viewed_rooms)
-                
-                # Find matches
                 for room in all_rooms:
-                    if room['id'] in viewed_ids:
-                        continue
-                        
-                    address_lower = room.get('address', '').lower()
-                    if any(kw in address_lower for kw in recent_location_keywords):
+                    if room['id'] in viewed_ids: continue
+                    
+                    # Check match against city or address
+                    room_city = room.get('city', '').lower() if room.get('city') else ''
+                    room_addr = room.get('address', '').lower()
+                    
+                    if any(kw in room_city for kw in recent_location_keywords) or \
+                       any(kw in room_addr for kw in recent_location_keywords):
                         recommended_rooms.append(room)
                 
                 if len(recommended_rooms) < 5:
                     remaining = [r for r in all_rooms if r['id'] not in viewed_ids and r not in recommended_rooms]
-                    if remaining:
-                        recommended_rooms.extend(random.sample(remaining, min(len(remaining), 5 - len(recommended_rooms))))
+                    if remaining: recommended_rooms.extend(random.sample(remaining, min(len(remaining), 5 - len(recommended_rooms))))
             else:
                 user_loc = session.get('user_location')
                 if user_loc:
                     for room in all_rooms:
                         if user_loc.lower() in room.get('address', '').lower():
                             recommended_rooms.append(room)
-                    
                     if len(recommended_rooms) < 5:
                          remaining = [r for r in all_rooms if r not in recommended_rooms]
-                         if remaining:
-                            recommended_rooms.extend(random.sample(remaining, min(len(remaining), 5 - len(recommended_rooms))))
+                         if remaining: recommended_rooms.extend(random.sample(remaining, min(len(remaining), 5 - len(recommended_rooms))))
                 else:
                     if len(all_rooms) > 0:
                         recommended_rooms = random.sample(all_rooms, min(len(all_rooms), 8))
 
-        # Check liked rooms for the heart icon
         liked_room_ids = []
         if 'user' in session:
             user_id = session['user']
@@ -150,7 +139,7 @@ def index():
                          recommended_rooms=recommended_rooms,
                          liked_room_ids=liked_room_ids, 
                          search_query=search_query,
-                         filter_type=filter_type) # Pass filter_type to template
+                         filter_type=filter_type)
 
 @app.route('/wishlist')
 @login_required
@@ -165,11 +154,9 @@ def wishlist():
             rooms = rooms_res.data
         else:
             rooms = []
-            
         return render_template('wishlist.html', rooms=rooms)
     except Exception as e:
         print(f"Error fetching wishlist: {e}")
-        flash("Could not load wishlist", "error")
         return redirect(url_for('index'))
 
 @app.route('/toggle_wishlist/<int:room_id>', methods=['POST'])
@@ -252,11 +239,8 @@ def profile():
     try:
         user_response = supabase.table('user_profiles').select("*").eq('id', user_id).single().execute()
         user = user_response.data
-        
-        # Order by created_at desc to show newest first
         rooms_response = supabase.table('rooms').select("*").eq('owner_id', user_id).order('created_at', desc=True).execute()
         user_rooms = rooms_response.data
-        
         return render_template('profile.html', user=user, rooms=user_rooms)
     except Exception as e:
         flash(f"Error fetching profile: {e}", "error")
@@ -267,16 +251,27 @@ def profile():
 def upload():
     if request.method == 'POST':
         title = request.form.get('title')
-        address = request.form.get('address')
         price = float(request.form.get('price'))
         desc = request.form.get('description')
         image_url = request.form.get('image_url')
         amenities = request.form.getlist('amenities')
+        
+        # New Address Fields
+        state = request.form.get('state')
+        city = request.form.get('city')
+        nearby_location = request.form.get('nearby_location')
+        
+        # Auto-construct the full address string for display compatibility
+        # Format: "Famous Place, City, State"
+        full_address = f"{nearby_location}, {city}, {state}"
 
         data = {
             "owner_id": session['user'],
             "title": title,
-            "address": address,
+            "address": full_address, # For display/legacy
+            "state": state,          # New field
+            "city": city,            # New field
+            "nearby_location": nearby_location, # New field
             "price_per_month": price,
             "description": desc,
             "image_url": image_url,
@@ -309,9 +304,19 @@ def edit_room(room_id):
     if request.method == 'POST':
         try:
             amenities = request.form.getlist('amenities')
+            
+            # Capture new fields
+            state = request.form.get('state')
+            city = request.form.get('city')
+            nearby_location = request.form.get('nearby_location')
+            full_address = f"{nearby_location}, {city}, {state}"
+
             update_data = {
                 "title": request.form.get('title'),
-                "address": request.form.get('address'),
+                "address": full_address,
+                "state": state,
+                "city": city,
+                "nearby_location": nearby_location,
                 "price_per_month": float(request.form.get('price')),
                 "description": request.form.get('description'),
                 "image_url": request.form.get('image_url'),
@@ -331,19 +336,15 @@ def delete_room(room_id):
     try:
         response = supabase.table('rooms').select("*").eq('id', room_id).single().execute()
         room = response.data
-        
         if str(room['owner_id']) != str(session['user']):
             flash("Unauthorized action.", "error")
             return redirect(url_for('profile'))
-
         supabase.table('bookings').delete().eq('room_id', room_id).execute()
         supabase.table('wishlist').delete().eq('room_id', room_id).execute()
         supabase.table('rooms').delete().eq('id', room_id).execute()
-        
         flash("Room deleted successfully.", "info")
     except Exception as e:
         flash(f"Error deleting room: {e}", "error")
-        
     return redirect(url_for('profile'))
 
 @app.route('/room/<int:room_id>')
@@ -356,8 +357,7 @@ def room_details(room_id):
         visit_fee = 50
         
         viewed = session.get('recently_viewed', [])
-        if room_id in viewed:
-            viewed.remove(room_id)
+        if room_id in viewed: viewed.remove(room_id)
         viewed.insert(0, room_id)
         viewed = viewed[:8]
         session['recently_viewed'] = viewed
@@ -373,14 +373,12 @@ def room_details(room_id):
 def book_room(room_id):
     booking_type = request.form.get('booking_type')
     amount = request.form.get('amount')
-    
     booking_data = {
         "user_id": session['user'],
         "room_id": room_id,
         "booking_type": booking_type,
         "amount_paid": float(amount) if amount else 0
     }
-    
     try:
         supabase.table('bookings').insert(booking_data).execute()
         if booking_type in ['full', 'lock']:
@@ -391,12 +389,35 @@ def book_room(room_id):
         flash(f"Booking failed: {e}", "error")
         return redirect(url_for('room_details', room_id=room_id))
 
+# --- OPTIMIZED SEARCH API ---
 @app.route('/api/locations')
 def get_locations():
     try:
-        response = supabase.table('rooms').select('address').execute()
-        addresses = sorted(list(set(row['address'] for row in response.data if row.get('address'))))
-        return jsonify(addresses)
+        # Optimized: Fetch distinct Cities and States for easier searching
+        # If 'city' column doesn't exist yet, this will fail gracefully or we fallback to 'address'
+        
+        # Try fetching structured data
+        response = supabase.table('rooms').select('city, state, address').execute()
+        
+        locations = set()
+        for row in response.data:
+            # 1. Add City if available
+            if row.get('city'):
+                locations.add(row['city'])
+            # 2. Add State if available
+            if row.get('state'):
+                locations.add(row['state'])
+            # 3. Fallback: Parse address if structured data is missing
+            if not row.get('city') and row.get('address'):
+                parts = row['address'].split(',')
+                # Assuming "Loc, City, State"
+                if len(parts) >= 2:
+                    locations.add(parts[-2].strip()) # City
+                    locations.add(parts[-1].strip()) # State
+                else:
+                    locations.add(row['address'])
+        
+        return jsonify(sorted(list(locations)))
     except Exception as e:
         print(f"Error fetching locations: {e}")
         return jsonify([])

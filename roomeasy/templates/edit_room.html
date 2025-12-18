@@ -13,8 +13,34 @@
             <label>Property Title</label>
             <input type="text" name="title" value="{{ room.title }}" required>
 
-            <label>Address / Locality</label>
-            <input type="text" name="address" value="{{ room.address }}" required>
+            <!-- --- CHANGED: Split Address Selection for Edit --- -->
+            <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 20px;">
+                <label style="color: var(--primary);">Location Details</label>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div>
+                        <label style="font-size: 13px;">State</label>
+                        <!-- We try to pre-select existing value, or default to empty if column is null -->
+                        <select name="state" id="stateSelect" onchange="populateCities()" required style="width: 100%; padding: 12px; border: 1px solid #b0b0b0; border-radius: 8px; background: white;">
+                            <option value="">Select State</option>
+                        </select>
+                        <input type="hidden" id="existingState" value="{{ room.state or '' }}">
+                    </div>
+                    <div>
+                        <label style="font-size: 13px;">City</label>
+                        <select name="city" id="citySelect" required style="width: 100%; padding: 12px; border: 1px solid #b0b0b0; border-radius: 8px; background: white;">
+                            <option value="">Select City</option>
+                        </select>
+                        <input type="hidden" id="existingCity" value="{{ room.city or '' }}">
+                    </div>
+                </div>
+                
+                <div style="margin-top: 12px;">
+                    <label style="font-size: 13px;">Famous Nearby Location</label>
+                    <input type="text" name="nearby_location" value="{{ room.nearby_location or room.address }}" placeholder="e.g. Near Central Park" required style="margin-top: 4px;">
+                </div>
+            </div>
+            <!-- ----------------------------------------- -->
 
             <label>Monthly Rent ($)</label>
             <input type="number" name="price" value="{{ room.price_per_month }}" step="0.01" required>
@@ -27,41 +53,15 @@
                 <img src="{{ room.image_url }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #eee;">
             </div>
 
-            <!-- NEW SECTION: Amenities Selection (With pre-filled values) -->
+            <!-- Amenities Section -->
             {% set current_amenities = room.amenities if room.amenities else [] %}
-            
             <label style="margin-top: 20px; margin-bottom: 10px;">What this place offers</label>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
+                {% for amenity in ['Wifi', 'Air Conditioning', 'Free Parking', 'Attached Washroom', 'Kitchen', 'TV', 'Power Backup', 'Washing Machine', 'Geyser', 'Lift'] %}
                 <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                    <input type="checkbox" name="amenities" value="Wifi" {% if 'Wifi' in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> Wifi
+                    <input type="checkbox" name="amenities" value="{{ amenity }}" {% if amenity in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> {{ amenity }}
                 </label>
-                <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                    <input type="checkbox" name="amenities" value="Air Conditioning" {% if 'Air Conditioning' in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> Air Conditioning
-                </label>
-                <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                    <input type="checkbox" name="amenities" value="Free Parking" {% if 'Free Parking' in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> Free Parking
-                </label>
-                <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                    <input type="checkbox" name="amenities" value="Attached Washroom" {% if 'Attached Washroom' in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> Attached Washroom
-                </label>
-                <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                    <input type="checkbox" name="amenities" value="Kitchen" {% if 'Kitchen' in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> Kitchen
-                </label>
-                <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                    <input type="checkbox" name="amenities" value="TV" {% if 'TV' in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> TV
-                </label>
-                <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                    <input type="checkbox" name="amenities" value="Power Backup" {% if 'Power Backup' in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> Power Backup
-                </label>
-                <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                    <input type="checkbox" name="amenities" value="Washing Machine" {% if 'Washing Machine' in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> Washing Machine
-                </label>
-                <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                    <input type="checkbox" name="amenities" value="Geyser" {% if 'Geyser' in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> Geyser
-                </label>
-                <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                    <input type="checkbox" name="amenities" value="Lift" {% if 'Lift' in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> Lift
-                </label>
+                {% endfor %}
             </div>
 
             <label>Description</label>
@@ -71,4 +71,62 @@
         </form>
     </div>
 </div>
+
+<script>
+    // Copy of location data logic
+    const locationData = {
+        "California": ["Los Angeles", "San Francisco", "San Diego", "Sacramento"],
+        "New York": ["New York City", "Buffalo", "Rochester", "Albany"],
+        "Texas": ["Houston", "Austin", "Dallas", "San Antonio"],
+        "Florida": ["Miami", "Orlando", "Tampa", "Jacksonville"],
+        "Illinois": ["Chicago", "Aurora", "Naperville"],
+        "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Nashik"],
+        "Delhi": ["New Delhi", "North Delhi", "South Delhi"],
+        "Karnataka": ["Bangalore", "Mysore", "Hubli"],
+        "Telangana": ["Hyderabad", "Warangal"],
+        "Other": ["Other"]
+    };
+
+    function initLocation() {
+        const stateSelect = document.getElementById('stateSelect');
+        const sortedStates = Object.keys(locationData).sort();
+        const existingState = document.getElementById('existingState').value;
+        
+        sortedStates.forEach(state => {
+            const option = document.createElement('option');
+            option.value = state;
+            option.textContent = state;
+            if (state === existingState) option.selected = true;
+            stateSelect.appendChild(option);
+        });
+        
+        // Initial population of cities
+        populateCities();
+    }
+
+    function populateCities() {
+        const stateSelect = document.getElementById('stateSelect');
+        const citySelect = document.getElementById('citySelect');
+        const selectedState = stateSelect.value;
+        const existingCity = document.getElementById('existingCity').value;
+        
+        citySelect.innerHTML = '<option value="">Select City</option>';
+        
+        if (selectedState && locationData[selectedState]) {
+            locationData[selectedState].forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                if (city === existingCity) option.selected = true;
+                citySelect.appendChild(option);
+            });
+            const otherOpt = document.createElement('option');
+            otherOpt.value = "Other";
+            otherOpt.textContent = "Other / Not Listed";
+            citySelect.appendChild(otherOpt);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', initLocation);
+</script>
 {% endblock %}

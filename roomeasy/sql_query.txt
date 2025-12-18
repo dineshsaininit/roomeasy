@@ -199,3 +199,12 @@ create table public.wishlist (
 alter table public.wishlist disable row level security;
 
 ALTER TABLE public.rooms ADD COLUMN IF NOT EXISTS amenities text[];
+
+-- Run these commands in your Supabase SQL Editor to add the new columns
+
+ALTER TABLE rooms ADD COLUMN IF NOT EXISTS state text;
+ALTER TABLE rooms ADD COLUMN IF NOT EXISTS city text;
+ALTER TABLE rooms ADD COLUMN IF NOT EXISTS nearby_location text;
+
+-- Optional: If you want to backfill existing rows (simple logic)
+-- UPDATE rooms SET state = 'Unknown', city = 'Unknown', nearby_location = address WHERE state IS NULL;
