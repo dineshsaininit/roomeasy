@@ -8,22 +8,53 @@
   
   <style>
     :root {
+      /* Light Theme (Default) */
       --primary: #ff385c;
+      --primary-hover: #e61e4d;
       --dark: #222222;
       --gray: #717171;
       --light-gray: #f7f7f7;
       --white: #ffffff;
-      --footer-bg: #1a1a1a; /* Modern dark footer */
+      --bg-body: #ffffff;
+      --bg-card: #ffffff;
+      --bg-input: #fcfcfc;
+      --border-color: #dddddd;
+      --text-main: #222222;
+      --text-muted: #717171;
+      --footer-bg: #1a1a1a; 
       --footer-text: #b0b0b0;
       --radius: 12px;
       --shadow: 0 6px 16px rgba(0,0,0,0.12);
     }
 
+    /* Dark Theme Variables */
+    [data-theme="dark"] {
+      --primary: #ff385c;
+      --primary-hover: #ff5a78;
+      --dark: #f0f0f0; /* Invert dark text to light */
+      --gray: #a0a0a0;
+      --light-gray: #2d2d2d;
+      --white: #1e1e1e; /* Invert white backgrounds to dark */
+      --bg-body: #121212;
+      --bg-card: #1e1e1e;
+      --bg-input: #2a2a2a;
+      --border-color: #333333;
+      --text-main: #e0e0e0;
+      --text-muted: #b0b0b0;
+      --footer-bg: #000000;
+      --shadow: 0 6px 16px rgba(0,0,0,0.5);
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
 
+    /* Smooth transition for theme switching */
+    body, header, .card, .form-card-container, input, .search-bar, .user-dropdown-menu, footer, .suggestion-item {
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
     body { 
-        background-color: var(--white); 
-        color: var(--dark); 
+        background-color: var(--bg-body); 
+        color: var(--text-main); 
         display: flex;
         flex-direction: column;
         min-height: 100vh;
@@ -31,8 +62,9 @@
 
     /* --- Header & Navigation --- */
     header {
-      position: sticky; top: 0; z-index: 100; background: var(--white);
-      padding: 15px 24px; box-shadow: 0 1px 0 rgba(0,0,0,0.08);
+      position: sticky; top: 0; z-index: 100; 
+      background: var(--bg-card);
+      padding: 15px 24px; box-shadow: 0 1px 0 var(--border-color);
       display: flex; align-items: center; justify-content: space-between;
       height: 80px;
     }
@@ -47,12 +79,11 @@
     .search-bar {
       display: flex; 
       align-items: center; 
-      background: var(--white);
-      border: 1px solid #dddddd; 
+      background: var(--bg-card);
+      border: 1px solid var(--border-color); 
       border-radius: 50px; /* Pill shape */
       padding: 4px 6px 4px 20px; /* Adjusted padding */
       box-shadow: 0 1px 2px rgba(0,0,0,0.08);
-      transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
       cursor: text; 
       width: 440px; 
       height: 48px;
@@ -60,19 +91,19 @@
     
     .search-bar:hover { 
         box-shadow: 0 2px 4px rgba(0,0,0,0.18); 
-        border-color: #b0b0b0;
+        border-color: var(--text-muted);
     }
     
     .search-bar:focus-within {
         width: 580px;
         box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-        border-color: var(--dark);
+        border-color: var(--text-main);
     }
     
     .search-text { 
         font-size: 15px; 
         font-weight: 500; 
-        color: var(--dark); 
+        color: var(--text-main); 
         margin-right: 8px; 
         border: none;
         outline: none;
@@ -107,11 +138,11 @@
         top: 100%;
         left: 20px;
         right: 40px;
-        background: white;
-        border: 1px solid #ddd;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
         border-top: none;
         border-radius: 0 0 24px 24px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+        box-shadow: var(--shadow);
         z-index: 1000;
         max-height: 350px;
         overflow-y: auto;
@@ -125,23 +156,23 @@
         padding: 12px 24px;
         cursor: pointer;
         font-size: 14px;
-        color: var(--dark);
+        color: var(--text-main);
         display: flex;
         align-items: center;
         gap: 12px;
         transition: background 0.1s;
     }
-    .suggestion-item:hover { background-color: #f7f7f7; }
-    .suggestion-item i { color: var(--gray); font-size: 14px; width: 20px; text-align: center;}
+    .suggestion-item:hover { background-color: var(--light-gray); }
+    .suggestion-item i { color: var(--text-muted); font-size: 14px; width: 20px; text-align: center;}
     
     /* Special styling for "Use Current Location" */
     .suggestion-special {
         color: var(--primary);
         font-weight: 600;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid var(--border-color);
     }
     .suggestion-special i { color: var(--primary); }
-    .suggestion-special:hover { background-color: #fff0f3; }
+    .suggestion-special:hover { background-color: rgba(255, 56, 92, 0.1); }
 
     /* Right Navigation (User Menu) */
     .nav-links { display: flex; align-items: center; gap: 24px; }
@@ -149,7 +180,7 @@
     /* Standard Nav Links (Home, Login, Signup) */
     .nav-links a.nav-link-item { 
         text-decoration: none; 
-        color: var(--dark); 
+        color: var(--text-main); 
         font-weight: 600; 
         font-size: 14px; 
         display: flex;
@@ -168,8 +199,8 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        background: white;
-        border: 1px solid #ddd;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
         border-radius: 21px;
         padding: 5px 5px 5px 12px;
         cursor: pointer;
@@ -182,9 +213,10 @@
     
     /* Active State Animation */
     .user-menu-btn.active {
-        box-shadow: 0 0 0 2px var(--dark), 0 6px 16px rgba(0,0,0,0.12);
-        background-color: #f0f0f0;
+        box-shadow: 0 0 0 2px var(--text-main), 0 6px 16px rgba(0,0,0,0.12);
+        background-color: var(--light-gray);
     }
+    .user-menu-btn i { color: var(--text-main); }
     
     .user-menu-btn i.fa-bars {
         transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -211,13 +243,13 @@
         top: calc(100% + 12px);
         right: 0;
         width: 250px;
-        background: white;
+        background: var(--bg-card);
         border-radius: 12px;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        box-shadow: var(--shadow);
         padding: 8px 0;
         display: none; /* Hidden by default */
         z-index: 1000;
-        border: 1px solid #f0f0f0;
+        border: 1px solid var(--border-color);
         overflow: hidden;
         animation: fadeInDown 0.2s ease-out;
     }
@@ -236,7 +268,7 @@
         align-items: center;
         gap: 10px;
         padding: 14px 16px;
-        color: var(--dark);
+        color: var(--text-main);
         font-weight: 400;
         text-decoration: none;
         transition: background 0.1s;
@@ -246,16 +278,16 @@
     .dropdown-item i {
         width: 20px;
         text-align: center;
-        color: var(--gray);
+        color: var(--text-muted);
     }
 
     .dropdown-item:hover {
-        background-color: #f7f7f7;
+        background-color: var(--light-gray);
     }
     
     .dropdown-divider {
         height: 1px;
-        background-color: #dddddd;
+        background-color: var(--border-color);
         margin: 8px 0;
     }
     
@@ -265,20 +297,20 @@
 
     /* Standard Button for non-logged users */
     .btn-primary { background: var(--primary); color: white !important; padding: 10px 20px; border-radius: 8px; transition: 0.2s; text-decoration: none; border: none; font-size: 14px; font-weight: 600; display: inline-block; }
-    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:hover { opacity: 0.9; background: var(--primary-hover); }
 
     /* Global Form Styles */
     input[type=text], input[type=email], input[type=password], input[type=number], select, textarea {
         width: 100%; padding: 14px; margin: 8px 0 20px; display: inline-block;
         border: 1px solid #b0b0b0; border-radius: 8px; box-sizing: border-box;
-        font-size: 16px; color: var(--dark);
+        font-size: 16px; color: var(--text-main); background: var(--bg-input);
     }
     
     /* Reset search input to not use global form styles */
-    .search-bar input[type=text] { border: none; padding: 0; margin: 0; border-radius: 0; }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--dark); box-shadow: 0 0 0 2px rgba(34, 34, 34, 0.1); }
+    .search-bar input[type=text] { border: none; padding: 0; margin: 0; border-radius: 0; background: transparent; }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--text-main); box-shadow: 0 0 0 2px rgba(34, 34, 34, 0.1); }
     .search-bar input:focus { box-shadow: none; border: none; }
-    label { font-size: 14px; font-weight: 600; color: var(--dark); margin-bottom: 4px; display: block; }
+    label { font-size: 14px; font-weight: 600; color: var(--text-main); margin-bottom: 4px; display: block; }
 
     /* Flash Messages */
     .flash-container { max-width: 600px; margin: 20px auto; padding: 0 20px; }
@@ -291,6 +323,138 @@
     /* Main Content Wrapper to push Footer down */
     .main-wrapper {
         flex: 1;
+    }
+
+    /* --- Theme Toggle Button --- */
+    .theme-toggle-btn {
+        background: var(--light-gray);
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-size: 18px;
+        overflow: hidden; /* Ensure animation stays inside */
+    }
+    
+    .theme-toggle-btn:hover {
+        background: var(--border-color);
+        /* Scale effect on hover handled by keyframes if active, otherwise mild scale */
+        transform: scale(1.1); 
+    }
+
+    /* Animation Keyframes for Icon Spin/Swap */
+    @keyframes spin-swap {
+      0% { transform: rotate(0deg) scale(1); opacity: 1; }
+      50% { transform: rotate(180deg) scale(0.1); opacity: 0; }
+      100% { transform: rotate(360deg) scale(1); opacity: 1; }
+    }
+
+    .theme-icon-active {
+        animation: spin-swap 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+    }
+
+    /* --- DARK MODE SPECIFIC OVERRIDES --- */
+    
+    /* 1. AGGRESSIVE FIX for Hardcoded Inline Styles (background: white / color: black) */
+    /* This selects any element that has inline style 'background: white' or similar */
+    [data-theme="dark"] *[style*="background: white"],
+    [data-theme="dark"] *[style*="background:white"],
+    [data-theme="dark"] *[style*="background-color: white"],
+    [data-theme="dark"] *[style*="background-color:white"],
+    [data-theme="dark"] *[style*="background: #fff"],
+    [data-theme="dark"] *[style*="background:#fff"] {
+        background-color: var(--bg-card) !important;
+        color: var(--text-main) !important;
+        border-color: var(--border-color) !important;
+    }
+    
+    [data-theme="dark"] *[style*="color: black"],
+    [data-theme="dark"] *[style*="color:black"],
+    [data-theme="dark"] *[style*="color: #000"],
+    [data-theme="dark"] *[style*="color:#000"] {
+        color: var(--text-main) !important;
+    }
+
+    /* 2. Text Utilities Fix */
+    [data-theme="dark"] .text-dark, 
+    [data-theme="dark"] .text-black,
+    [data-theme="dark"] .text-body {
+        color: var(--text-main) !important;
+    }
+    [data-theme="dark"] .bg-white { background-color: var(--bg-card) !important; }
+    [data-theme="dark"] .bg-light { background-color: var(--bg-body) !important; }
+
+    /* 3. Placeholder Text Visibility */
+    [data-theme="dark"] ::placeholder {
+        color: #b0b0b0;
+        opacity: 1;
+    }
+
+    /* 4. Main Component Overrides */
+    [data-theme="dark"] .form-card-container,
+    [data-theme="dark"] .building-hero,
+    [data-theme="dark"] .building-info,
+    [data-theme="dark"] .room-card,
+    [data-theme="dark"] .booking-card,
+    [data-theme="dark"] .host-card,
+    [data-theme="dark"] .location-box,
+    [data-theme="dark"] .image-upload-box,
+    [data-theme="dark"] .option-item {
+        background-color: var(--bg-card) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-main) !important;
+    }
+    
+    [data-theme="dark"] .hero-section {
+        background: linear-gradient(120deg, #121212 0%, #1a1a1a 100%) !important;
+    }
+    
+    [data-theme="dark"] .hero-nav-btn,
+    [data-theme="dark"] .nav-btn,
+    [data-theme="dark"] .amenity-label {
+        background-color: var(--bg-card) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-main) !important;
+    }
+
+    /* 5. EXPLORE NOW & PRIMARY BUTTONS FIX */
+    /* Forces primary button appearance in dark mode to avoid "grey on grey" invisibility */
+    [data-theme="dark"] .btn-primary,
+    [data-theme="dark"] a.btn-primary,
+    [data-theme="dark"] .hero-section .btn-primary,
+    [data-theme="dark"] .hero-content a.btn,
+    [data-theme="dark"] .hero-section a.btn,
+    [data-theme="dark"] button[type="submit"] {
+        background-color: var(--primary) !important;
+        color: #ffffff !important; /* Force white text */
+        border: none !important;
+    }
+
+    [data-theme="dark"] .btn-primary:hover,
+    [data-theme="dark"] a.btn-primary:hover,
+    [data-theme="dark"] .hero-content a.btn:hover {
+        background-color: var(--primary-hover) !important;
+        opacity: 0.9;
+    }
+    
+    [data-theme="dark"] .slide-img {
+        background: var(--bg-card) !important;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.5) !important;
+    }
+    
+    [data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3, [data-theme="dark"] h4 {
+        color: var(--text-main) !important;
+    }
+    
+    [data-theme="dark"] .amenity-checkbox:checked + .amenity-label {
+        background: rgba(255, 56, 92, 0.15) !important;
+        color: var(--primary) !important;
     }
 
     /* --- FOOTER STYLES (Clean & Interesting) --- */
@@ -406,8 +570,60 @@
         .footer-content { grid-template-columns: 1fr; gap: 30px; }
         .footer-bottom { flex-direction: column; gap: 15px; text-align: center; }
         .brand-col p { max-width: 100%; }
+        .nav-links { gap: 12px; }
     }
   </style>
+
+  <!-- IMPORTANT: Scripts in Head to prevent Theme Flash and define functions -->
+  <script>
+    // 1. Initialize Theme Immediately
+    (function() {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    })();
+
+    // 2. Define toggleTheme globally
+    window.toggleTheme = function() {
+        const html = document.documentElement;
+        const icon = document.getElementById('themeIcon');
+        const currentTheme = html.getAttribute('data-theme');
+        
+        // Add Animation Class to start the spin
+        if(icon) {
+            icon.classList.add('theme-icon-active');
+            
+            // Wait for 250ms (halfway) to swap the theme and icon
+            setTimeout(() => {
+                if (currentTheme === 'dark') {
+                    html.setAttribute('data-theme', 'light');
+                    localStorage.setItem('theme', 'light');
+                    icon.className = 'fas fa-moon theme-icon-active';
+                } else {
+                    html.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark');
+                    icon.className = 'fas fa-sun theme-icon-active';
+                }
+            }, 200);
+
+            // Remove Animation Class after it finishes (500ms)
+            setTimeout(() => {
+                icon.classList.remove('theme-icon-active');
+            }, 500);
+
+        } else {
+            // Fallback if no icon element
+            if (currentTheme === 'dark') {
+                html.setAttribute('data-theme', 'light');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+    }
+  </script>
 
   {% block extra_css %}{% endblock %}
 </head>
@@ -437,6 +653,12 @@
 
     <!-- Navigation -->
     <div class="nav-links">
+      <!-- Theme Toggle Button -->
+      <button onclick="window.toggleTheme()" class="theme-toggle-btn" title="Toggle Dark/Light Mode">
+          <!-- Set initial icon based on script below -->
+          <i class="fas fa-moon" id="themeIcon"></i>
+      </button>
+
       <!-- ALWAYS Visible Home Link -->
       <a href="/" class="nav-link-item"><i class="fas fa-home"></i> Home</a>
 
@@ -556,6 +778,16 @@
 
   <!-- SCRIPTS FOR AUTO-LOCATION & AUTOCOMPLETE -->
   <script>
+    // --- ICON INITIALIZATION ---
+    // Update the icon after the body loads if the theme was dark
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('theme');
+        const icon = document.getElementById('themeIcon');
+        if (savedTheme === 'dark' && icon) {
+            icon.className = 'fas fa-sun';
+        }
+    });
+
     // --- USER MENU TOGGLE SCRIPT ---
     function toggleUserMenu(btn) {
         const menu = document.getElementById('userDropdown');
