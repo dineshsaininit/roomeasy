@@ -110,11 +110,13 @@
     .booking-label { color: #666; }
     .booking-value { font-weight: 600; color: #333; }
     .pay-remainder-btn {
-        display: block; width: 100%; padding: 10px; margin-top: 15px;
-        background: var(--primary); color: white; text-align: center; border-radius: 8px;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        width: 100%; padding: 12px; margin-top: 15px;
+        background: var(--dark); color: white; text-align: center; border-radius: 8px;
         text-decoration: none; font-weight: 600; font-size: 0.9rem;
+        transition: background 0.3s;
     }
-    .pay-remainder-btn:hover { background: #e61e4d; }
+    .pay-remainder-btn:hover { background: #333; }
     
     /* Host View of Renter Styles */
     .renter-info-box {
@@ -132,22 +134,26 @@
     <!-- Header -->
     <div class="profile-header">
         <div class="profile-avatar">
-            {% if session.get('user_pic') %}
-                <img src="{{ session.get('user_pic') }}" alt="Profile" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <!-- 
+               FIX: Check 'profile_image' in session (set in login)
+               or 'profile_image_url' in user object (from DB).
+            -->
+            {% if session.get('profile_image') %}
+                <img src="{{ session.get('profile_image') }}" alt="Profile" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                 <i class="fas fa-user" style="display:none;"></i>
-            {% elif user and user.profile_pic %}
-                <img src="{{ user.profile_pic }}" alt="Profile" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            {% elif user and user.profile_image_url %}
+                <img src="{{ user.profile_image_url }}" alt="Profile" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                 <i class="fas fa-user" style="display:none;"></i>
             {% else %}
                 <i class="fas fa-user"></i>
             {% endif %}
         </div>
         <div class="profile-info">
-            <h1>{{ user.name if user.name else session.get('user_name', 'User') }}</h1>
-            <p>{{ user.email if user.email else session.get('user_email', '') }}</p>
+            <h1>{{ user.full_name if user.full_name else session.get('name', 'User') }}</h1>
+            <p>{{ user.email if user.email else session.get('email', '') }}</p>
             <div class="profile-badges">
                 <span class="badge badge-verified"><i class="fas fa-shield-alt"></i> Identity Verified</span>
-                <span class="badge" style="background:#eee; color:#666;"><i class="far fa-calendar-alt"></i> Joined {{ user.created_at if user.created_at else 'Recently' }}</span>
+                <span class="badge" style="background:#eee; color:#666;"><i class="far fa-calendar-alt"></i> Joined {{ user.created_at[:4] if user.created_at else 'Recently' }}</span>
             </div>
         </div>
         <div style="margin-left: auto;">
@@ -164,6 +170,9 @@
 
     <!-- 1. MY LISTINGS (HOST VIEW) -->
     <div id="my-rooms" class="tab-content">
+        <!-- 
+           FIX: Iterate over 'my_rooms' which is now correctly passed from app.py 
+        -->
         {% if my_rooms and my_rooms|length > 0 %}
         <div class="rooms-grid">
             {% for room in my_rooms %}
@@ -180,34 +189,37 @@
                 <div class="room-details">
                     <div class="room-price">₹{{ room.price_per_month }}<span style="font-size:0.9rem; font-weight:400; color:#888;"> / month</span></div>
                     <div class="room-title">{{ room.title }}</div>
+                    
+                    <!-- Amenities Count or specific icons -->
                     <div class="room-meta">
-                        <span><i class="fas fa-bed"></i> {{ room.bedrooms }} Bed</span>
-                        <span><i class="fas fa-bath"></i> {{ room.bathrooms }} Bath</span>
+                        {% if room.amenities %}
+                            <span>{{ room.amenities|length }} Amenities</span>
+                        {% else %}
+                            <span>Standard</span>
+                        {% endif %}
                     </div>
 
                     {% if room.status == 'booked' %}
-                        <!-- Host View: Renter Info (If Booked) -->
+                        <!-- Host View: Renter Info (Populated in app.py) -->
                         <div class="renter-info-box">
                             <span style="font-size:0.8rem; text-transform:uppercase; color:#ff385c; font-weight:700; letter-spacing:0.5px;">Current Renter</span>
                             <span class="renter-name">{{ room.renter_name }}</span>
                             <div class="renter-contact"><i class="fas fa-envelope"></i> {{ room.renter_email }}</div>
-                            <div class="renter-contact"><i class="fas fa-phone"></i> {{ room.renter_phone }}</div>
                             <div style="margin-top:8px; font-size:0.85rem; color:#666;">
-                                <strong>Booking Type:</strong> {{ room.booking_type|title }}
+                                <strong>Type:</strong> {{ room.booking_type|title }}
                             </div>
                         </div>
                         
-                        <!-- Disabled Actions for Booked Rooms -->
                         <div class="room-actions">
-                            <span class="action-btn-sm btn-disabled" title="Cannot edit booked property">Edit</span>
-                            <span class="action-btn-sm btn-disabled" title="Cannot remove booked property">Remove</span>
+                            <span class="action-btn-sm btn-disabled">Edit</span>
                              <a href="/room/{{ room.id }}" class="action-btn-sm">View</a>
                         </div>
                     {% else %}
-                        <!-- Normal Actions for Active Rooms -->
                         <div class="room-actions">
                             <a href="/edit_room/{{ room.id }}" class="action-btn-sm"><i class="fas fa-edit"></i> Edit</a>
-                            <a href="/delete_room/{{ room.id }}" class="action-btn-sm btn-danger" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i> Remove</a>
+                            <form action="/delete_room/{{ room.id }}" method="POST" style="flex:1; display:flex;" onsubmit="return confirm('Delete this room?')">
+                                <button type="submit" class="action-btn-sm btn-danger" style="width:100%;"><i class="fas fa-trash"></i> Remove</button>
+                            </form>
                             <a href="/room/{{ room.id }}" class="action-btn-sm">View</a>
                         </div>
                     {% endif %}
@@ -221,7 +233,6 @@
                 <h3>No listings yet</h3>
                 <p>Ready to earn? List your property today.</p>
                 <br>
-                <!-- Updated link to /upload based on available files, as add_room might be the specific template -->
                 <a href="/upload" class="action-btn-sm" style="background:var(--dark); color:white; padding:12px 24px; display:inline-block;">Create Listing</a>
             </div>
         {% endif %}
@@ -247,34 +258,26 @@
                             <span class="booking-label">Check-in Date</span>
                             <span class="booking-value">{{ booking.start_date }}</span>
                         </div>
-                         <div class="booking-info-row">
-                            <span class="booking-label">Duration So Far</span>
-                            <span class="booking-value">{{ booking.months_stayed }} Months</span>
-                        </div>
                         <div class="booking-info-row">
                             <span class="booking-label">Booking Type</span>
                             <span class="booking-value" style="text-transform: capitalize;">{{ booking.type }}</span>
                         </div>
                         <div class="booking-info-row" style="border-top:1px dashed #ddd; padding-top:8px; margin-top:8px;">
-                            <span class="booking-label">Next Rent Due</span>
+                            <span class="booking-label">Monthly Rent</span>
                             <span class="booking-value" style="color:var(--primary);">₹{{ booking.next_rent_amount }}</span>
                         </div>
-                        <div class="booking-info-row">
-                            <span class="booking-label">Due Date</span>
-                            <span class="booking-value">{{ booking.next_due_date }}</span>
-                        </div>
 
-                        <!-- Pay Remaining Rent Action (If Locked only) -->
                         {% if booking.type == 'lock' %}
-                            <a href="/pay_remaining/{{ booking.id }}" class="pay-remainder-btn">
-                                Pay Remaining Rent (Convert to Rent)
-                            </a>
+                             <form action="/pay_remainder/{{ booking.id }}" method="POST">
+                                <button type="submit" class="pay-remainder-btn" style="border:none; cursor:pointer; width:100%;">
+                                    <i class="fas fa-bolt"></i> Pay Remaining ₹{{ booking.remaining_amount }} via Razorpay
+                                </button>
+                            </form>
                         {% endif %}
                     </div>
                     
                     <div class="room-actions">
                          <a href="/room/{{ booking.room_id }}" class="action-btn-sm">View Property</a>
-                         <a href="mailto:{{ booking.host_email }}" class="action-btn-sm">Contact Host</a>
                     </div>
                 </div>
             </div>
@@ -305,7 +308,8 @@
                     <div class="room-title">{{ room.title }}</div>
                     <div class="room-actions">
                         <a href="/room/{{ room.id }}" class="action-btn-sm">View</a>
-                        <a href="/remove_wishlist/{{ room.id }}" class="action-btn-sm btn-danger">Remove</a>
+                        <!-- Button triggers simple removal via JS or API needed, simple redirect here for simplicity -->
+                        <a href="/room/{{ room.id }}" class="action-btn-sm btn-danger">Unsave</a> 
                     </div>
                 </div>
             </div>

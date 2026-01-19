@@ -34,7 +34,6 @@ def login_required(f):
 @app.route('/')
 def index():
     search_query = request.args.get('q', '').strip()
-    filter_type = request.args.get('filter', '').strip()
     
     featured_buildings = []
     recommended_buildings = []
@@ -360,6 +359,7 @@ def login():
                 session['user'] = user['id']
                 session['name'] = user['full_name']
                 session['role'] = user['role']
+                # Correctly mapping profile_image_url to session
                 session['profile_image'] = user.get('profile_image_url')
                 flash(f"Welcome back, {user['full_name']}!", "success")
                 return redirect(url_for('index'))
@@ -380,18 +380,92 @@ def logout():
 def profile():
     user_id = session['user']
     try:
+        # 1. Fetch User Profile
         user_response = supabase.table('user_profiles').select("*").eq('id', user_id).single().execute()
         user = user_response.data
-        buildings_response = supabase.table('buildings').select("*").eq('owner_id', user_id).order('created_at', desc=True).execute()
-        buildings = buildings_response.data
-        return render_template('profile.html', user=user, buildings=buildings)
+        
+        # 2. Fetch Listings (Rooms owned by user)
+        # We need to fetch 'rooms', not 'buildings', because profile.html iterates 'my_rooms'
+        rooms_res = supabase.table('rooms').select("*").eq('owner_id', user_id).order('created_at', desc=True).execute()
+        my_rooms = rooms_res.data
+        
+        # Enrich booked rooms with renter info (Simulated Join)
+        if my_rooms:
+            for room in my_rooms:
+                if room['status'] == 'booked':
+                    # Find the active booking for this room
+                    b_res = supabase.table('bookings').select("*").eq('room_id', room['id']).order('created_at', desc=True).limit(1).execute()
+                    if b_res.data:
+                        booking = b_res.data[0]
+                        # Fetch renter profile
+                        renter_res = supabase.table('user_profiles').select("*").eq('id', booking['user_id']).single().execute()
+                        if renter_res.data:
+                            renter = renter_res.data
+                            room['renter_name'] = renter.get('full_name', 'Unknown')
+                            room['renter_email'] = renter.get('email', 'Unknown')
+                            room['renter_phone'] = "Not Available" # Phone not in DB currently
+                            room['booking_type'] = booking.get('booking_type', 'standard')
+
+        # 3. Fetch Bookings (Where user is the renter)
+        # We need room details for these bookings
+        bookings_res = supabase.table('bookings').select("*").eq('user_id', user_id).order('created_at', desc=True).execute()
+        my_bookings = bookings_res.data
+        
+        # Enrich booking objects with room details
+        if my_bookings:
+            room_ids = [b['room_id'] for b in my_bookings]
+            if room_ids:
+                r_res = supabase.table('rooms').select("*").in_('id', room_ids).execute()
+                rooms_map = {r['id']: r for r in r_res.data}
+                
+                for b in my_bookings:
+                    r = rooms_map.get(b['room_id'])
+                    if r:
+                        b['room_title'] = r['title']
+                        b['room_image'] = r['image_url']
+                        b['room_address'] = r['address']
+                        b['next_rent_amount'] = r['price_per_month']
+                        b['remaining_amount'] = r['price_per_month'] - b.get('amount_paid', 0)
+                        b['host_email'] = "Contact Support" # Placeholder unless we fetch host profile too
+                        
+                        # Mock data for date logic
+                        b['start_date'] = b['created_at'][:10] 
+                        b['months_stayed'] = 1 
+                        b['next_due_date'] = "5th of next month"
+                        b['type'] = b['booking_type']
+
+        # 4. Fetch Wishlist Items
+        wishlist_items = []
+        w_res = supabase.table('wishlist').select('room_id').eq('user_id', user_id).execute()
+        if w_res.data:
+            w_ids = [w['room_id'] for w in w_res.data]
+            if w_ids:
+                w_rooms_res = supabase.table('rooms').select("*").in_('id', w_ids).execute()
+                wishlist_items = w_rooms_res.data
+
+        return render_template('profile.html', 
+                               user=user, 
+                               my_rooms=my_rooms, 
+                               my_bookings=my_bookings, 
+                               wishlist_items=wishlist_items)
+                               
     except Exception as e:
+        print(f"Profile error: {e}")
         flash(f"Error fetching profile: {e}", "error")
         return redirect(url_for('index'))
 
 @app.route('/book/<int:room_id>', methods=['POST'])
 @login_required
 def book_room(room_id):
+    # Check if user is the owner
+    try:
+        room_res = supabase.table('rooms').select("owner_id").eq('id', room_id).single().execute()
+        if room_res.data and str(room_res.data['owner_id']) == str(session['user']):
+            flash("You cannot book your own property!", "error")
+            return redirect(url_for('room_details', room_id=room_id))
+    except Exception as e:
+        print(f"Error checking ownership: {e}")
+
     booking_type = request.form.get('booking_type')
     amount = request.form.get('amount')
     booking_data = { "user_id": session['user'], "room_id": room_id, "booking_type": booking_type, "amount_paid": float(amount) if amount else 0 }
@@ -403,6 +477,40 @@ def book_room(room_id):
     except Exception as e:
         flash(f"Booking failed: {e}", "error")
         return redirect(url_for('room_details', room_id=room_id))
+
+@app.route('/pay_remainder/<int:booking_id>', methods=['POST'])
+@login_required
+def pay_remainder(booking_id):
+    try:
+        # Get booking to verify user and get room details
+        b_res = supabase.table('bookings').select("*").eq('id', booking_id).single().execute()
+        booking = b_res.data
+        
+        if not booking:
+            flash("Booking not found.", "error")
+            return redirect(url_for('profile'))
+            
+        if str(booking['user_id']) != str(session['user']):
+            flash("Unauthorized request.", "error")
+            return redirect(url_for('profile'))
+            
+        # Get full price from room
+        r_res = supabase.table('rooms').select("price_per_month").eq('id', booking['room_id']).single().execute()
+        room_data = r_res.data
+        full_price = room_data['price_per_month']
+        
+        # Update booking to paid/full
+        supabase.table('bookings').update({
+            "amount_paid": full_price,
+            "booking_type": "full"
+        }).eq('id', booking_id).execute()
+        
+        flash("Payment successful via Razorpay! Your booking is now fully paid.", "success")
+        return redirect(url_for('profile'))
+        
+    except Exception as e:
+        flash(f"Payment Error: {str(e)}", "error")
+        return redirect(url_for('profile'))
 
 @app.route('/api/locations')
 def get_locations():
