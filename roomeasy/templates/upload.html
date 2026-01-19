@@ -1,168 +1,230 @@
 {% extends 'base.html' %}
 
-{% block content %}
-<div class="container" style="max-width: 600px;">
-    <h2>Upload your Room</h2>
-    <p style="color:var(--gray);">Fill in the details to list your property.</p>
-    
-    <form method="POST" style="margin-top: 20px;">
-        <label>Property Title</label>
-        <input type="text" name="title" placeholder="e.g. Sunny Studio near Metro" required>
-
-        <!-- --- CHANGED: Input with Datalist for State & City --- -->
-        <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 20px;">
-            <label style="color: var(--primary);">Location Details</label>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                <div>
-                    <label style="font-size: 13px;">State</label>
-                    <input type="text" name="state" id="stateInput" list="stateList" 
-                           onchange="populateCities()" 
-                           placeholder="Type or select state..."
-                           required 
-                           style="width: 100%; padding: 12px; border: 1px solid #b0b0b0; border-radius: 8px; background: white;">
-                    
-                    <datalist id="stateList">
-                        <!-- Populated by JS -->
-                    </datalist>
-                </div>
-                <div>
-                    <label style="font-size: 13px;">City / District</label>
-                    <!-- CHANGED: Writable input with datalist for City -->
-                    <input type="text" name="city" id="cityInput" list="cityList" 
-                           placeholder="Type or select district..."
-                           required 
-                           style="width: 100%; padding: 12px; border: 1px solid #b0b0b0; border-radius: 8px; background: white;">
-                    
-                    <datalist id="cityList">
-                        <!-- Populated by JS based on State -->
-                    </datalist>
-                </div>
-            </div>
-            
-            <div style="margin-top: 12px;">
-                <label style="font-size: 13px;">Famous Nearby Location</label>
-                <input type="text" name="nearby_location" placeholder="e.g. Near Central Park, Sector 5" required style="margin-top: 4px;">
-                <small style="color: var(--gray);">This helps students search effectively.</small>
-            </div>
-        </div>
-        <!-- ----------------------------------------- -->
-
-        <label>Monthly Rent ($)</label>
-        <input type="number" name="price" placeholder="1200" step="0.01" required>
-
-        <label>Image URL</label>
-        <input type="text" name="image_url" placeholder="https://..." required>
-        
-        <label style="margin-top: 20px; margin-bottom: 10px;">What this place offers</label>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
-            <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="checkbox" name="amenities" value="Wifi" style="width: auto; margin: 0;"> Wifi
-            </label>
-            <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="checkbox" name="amenities" value="Air Conditioning" style="width: auto; margin: 0;"> Air Conditioning
-            </label>
-            <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="checkbox" name="amenities" value="Free Parking" style="width: auto; margin: 0;"> Free Parking
-            </label>
-            <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="checkbox" name="amenities" value="Attached Washroom" style="width: auto; margin: 0;"> Attached Washroom
-            </label>
-            <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="checkbox" name="amenities" value="Kitchen" style="width: auto; margin: 0;"> Kitchen
-            </label>
-            <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="checkbox" name="amenities" value="TV" style="width: auto; margin: 0;"> TV
-            </label>
-            <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="checkbox" name="amenities" value="Power Backup" style="width: auto; margin: 0;"> Power Backup
-            </label>
-            <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="checkbox" name="amenities" value="Washing Machine" style="width: auto; margin: 0;"> Washing Machine
-            </label>
-            <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="checkbox" name="amenities" value="Geyser" style="width: auto; margin: 0;"> Geyser
-            </label>
-            <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                <input type="checkbox" name="amenities" value="Lift" style="width: auto; margin: 0;"> Lift
-            </label>
-        </div>
-        
-        <label>Description</label>
-        <textarea name="description" rows="5" placeholder="Tell us about the room amenities..."></textarea>
-
-        <button type="submit" style="width: 100%; background: var(--primary); color: white; padding: 15px; border: none; border-radius: 8px; margin-top: 20px; font-size: 16px; font-weight:bold;">List Property</button>
-    </form>
-</div>
-
-<script>
-    // Comprehensive List of Indian States & Districts
-    const locationData = {
-        "Andhra Pradesh": ["Anantapur", "Chittoor", "East Godavari", "Guntur", "Krishna", "Kurnool", "Prakasam", "Srikakulam", "Sri Potti Sriramulu Nellore", "Visakhapatnam", "Vizianagaram", "West Godavari", "YSR District, Kadapa (Cuddapah)"],
-        "Arunachal Pradesh": ["Tawang", "West Kameng", "East Kameng", "Papum Pare", "Kurung Kumey", "Kra Daadi", "Lower Subansiri", "Upper Subansiri", "West Siang", "East Siang", "Siang", "Upper Siang", "Lower Siang", "Lower Dibang Valley", "Dibang Valley", "Anjaw", "Lohit", "Namsai", "Changlang", "Tirap", "Longding"],
-        "Assam": ["Baksa", "Barpeta", "Biswanath", "Bongaigaon", "Cachar", "Charaideo", "Chirang", "Darrang", "Dhemaji", "Dhubri", "Dibrugarh", "Dima Hasao", "Goalpara", "Golaghat", "Hailakandi", "Hojai", "Jorhat", "Kamrup", "Kamrup Metropolitan", "Karbi Anglong", "Karimganj", "Kokrajhar", "Lakhimpur", "Majuli", "Morigaon", "Nagaon", "Nalbari", "Sivasagar", "Sonitpur", "South Salmara-Mankachar", "Tinsukia", "Udalguri", "West Karbi Anglong"],
-        "Bihar": ["Araria", "Arwal", "Aurangabad", "Banka", "Begusarai", "Bhagalpur", "Bhojpur", "Buxar", "Darbhanga", "East Champaran", "Gaya", "Gopalganj", "Jamui", "Jehanabad", "Kaimur", "Katihar", "Khagaria", "Kishanganj", "Lakhisarai", "Madhepura", "Madhubani", "Munger", "Muzaffarpur", "Nalanda", "Nawada", "Patna", "Purnia", "Rohtas", "Saharsa", "Samastipur", "Saran", "Sheikhpura", "Sheohar", "Sitamarhi", "Siwan", "Supaul", "Vaishali", "West Champaran"],
-        "Chhattisgarh": ["Balod", "Baloda Bazar", "Balrampur", "Bastar", "Bemetara", "Bijapur", "Bilaspur", "Dantewada", "Dhamtari", "Durg", "Gariaband", "Janjgir-Champa", "Jashpur", "Kabirdham", "Kanker", "Kondagaon", "Korba", "Koriya", "Mahasamund", "Mungeli", "Narayanpur", "Raigarh", "Raipur", "Rajnandgaon", "Sukma", "Surajpur", "Surguja"],
-        "Delhi": ["Central Delhi", "East Delhi", "New Delhi", "North Delhi", "North East Delhi", "North West Delhi", "Shahdara", "South Delhi", "South East Delhi", "South West Delhi", "West Delhi"],
-        "Goa": ["North Goa", "South Goa"],
-        "Gujarat": ["Ahmedabad", "Amreli", "Anand", "Aravalli", "Banaskantha", "Bharuch", "Bhavnagar", "Botad", "Chhota Udaipur", "Dahod", "Dang", "Devbhoomi Dwarka", "Gandhinagar", "Gir Somnath", "Jamnagar", "Junagadh", "Kheda", "Kutch", "Mahisagar", "Mehsana", "Morbi", "Narmada", "Navsari", "Panchmahal", "Patan", "Porbandar", "Rajkot", "Sabarkantha", "Surat", "Surendranagar", "Tapi", "Vadodara", "Valsad"],
-        "Haryana": ["Ambala", "Bhiwani", "Charkhi Dadri", "Faridabad", "Fatehabad", "Gurugram", "Hisar", "Jhajjar", "Jind", "Kaithal", "Karnal", "Kurukshetra", "Mahendragarh", "Nuh", "Palwal", "Panchkula", "Panipat", "Rewari", "Rohtak", "Sirsa", "Sonipat", "Yamunanagar"],
-        "Himachal Pradesh": ["Bilaspur", "Chamba", "Hamirpur", "Kangra", "Kinnaur", "Kullu", "Lahaul and Spiti", "Mandi", "Shimla", "Sirmaur", "Solan", "Una"],
-        "Jharkhand": ["Bokaro", "Chatra", "Deoghar", "Dhanbad", "Dumka", "East Singhbhum", "Garhwa", "Giridih", "Godda", "Gumla", "Hazaribagh", "Jamtara", "Khunti", "Koderma", "Latehar", "Lohardaga", "Pakur", "Palamu", "Ramgarh", "Ranchi", "Sahibganj", "Seraikela Kharsawan", "Simdega", "West Singhbhum"],
-        "Karnataka": ["Bagalkot", "Ballari", "Belagavi", "Bengaluru Rural", "Bengaluru Urban", "Bidar", "Chamarajanagar", "Chikkaballapur", "Chikkamagaluru", "Chitradurga", "Dakshina Kannada", "Davangere", "Dharwad", "Gadag", "Hassan", "Haveri", "Kalaburagi", "Kodagu", "Kolar", "Koppal", "Mandya", "Mysuru", "Raichur", "Ramanagara", "Shivamogga", "Tumakuru", "Udupi", "Uttara Kannada", "Vijayapura", "Yadgir"],
-        "Kerala": ["Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam", "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta", "Thiruvananthapuram", "Thrissur", "Wayanad"],
-        "Madhya Pradesh": ["Agar Malwa", "Alirajpur", "Anuppur", "Ashoknagar", "Balaghat", "Barwani", "Betul", "Bhind", "Bhopal", "Burhanpur", "Chhatarpur", "Chhindwara", "Damoh", "Datia", "Dewas", "Dhar", "Dindori", "Guna", "Gwalior", "Harda", "Hoshangabad", "Indore", "Jabalpur", "Jhabua", "Katni", "Khandwa", "Khargone", "Mandla", "Mandsaur", "Morena", "Narsinghpur", "Neemuch", "Panna", "Raisen", "Rajgarh", "Ratlam", "Rewa", "Sagar", "Satna", "Sehore", "Seoni", "Shahdol", "Shajapur", "Sheopur", "Shivpuri", "Sidhi", "Singrauli", "Tikamgarh", "Ujjain", "Umaria", "Vidisha"],
-        "Maharashtra": ["Ahmednagar", "Akola", "Amravati", "Aurangabad", "Beed", "Bhandara", "Buldhana", "Chandrapur", "Dhule", "Gadchiroli", "Gondia", "Hingoli", "Jalgaon", "Jalna", "Kolhapur", "Latur", "Mumbai City", "Mumbai Suburban", "Nagpur", "Nanded", "Nandurbar", "Nashik", "Osmanabad", "Palghar", "Parbhani", "Pune", "Raigad", "Ratnagiri", "Sangli", "Satara", "Sindhudurg", "Solapur", "Thane", "Wardha", "Washim", "Yavatmal"],
-        "Manipur": ["Bishnupur", "Chandel", "Churachandpur", "Imphal East", "Imphal West", "Jiribam", "Kakching", "Kamjong", "Kangpokpi", "Noney", "Pherzawl", "Senapati", "Tamenglong", "Tengnoupal", "Thoubal", "Ukhrul"],
-        "Meghalaya": ["East Garo Hills", "East Jaintia Hills", "East Khasi Hills", "North Garo Hills", "Ri Bhoi", "South Garo Hills", "South West Garo Hills", "South West Khasi Hills", "West Garo Hills", "West Jaintia Hills", "West Khasi Hills"],
-        "Mizoram": ["Aizawl", "Champhai", "Kolasib", "Lawngtlai", "Lunglei", "Mamit", "Saiha", "Serchhip"],
-        "Nagaland": ["Dimapur", "Kiphire", "Kohima", "Longleng", "Mokokchung", "Mon", "Peren", "Phek", "Tuensang", "Wokha", "Zunheboto"],
-        "Odisha": ["Angul", "Balangir", "Balasore", "Bargarh", "Bhadrak", "Boudh", "Cuttack", "Deogarh", "Dhenkanal", "Gajapati", "Ganjam", "Jagatsinghpur", "Jajpur", "Jharsuguda", "Kalahandi", "Kandhamal", "Kendrapara", "Kendujhar", "Khordha", "Koraput", "Malkangiri", "Mayurbhanj", "Nabarangpur", "Nayagarh", "Nuapada", "Puri", "Rayagada", "Sambalpur", "Subarnapur", "Sundargarh"],
-        "Punjab": ["Amritsar", "Barnala", "Bathinda", "Faridkot", "Fatehgarh Sahib", "Fazilka", "Ferozepur", "Gurdaspur", "Hoshiarpur", "Jalandhar", "Kapurthala", "Ludhiana", "Mansa", "Moga", "Muktsar", "Nawanshahr", "Pathankot", "Patiala", "Rupnagar", "Sahibzada Ajit Singh Nagar", "Sangrur", "Tarn Taran"],
-        "Rajasthan": ["Ajmer", "Alwar", "Banswara", "Baran", "Barmer", "Bharatpur", "Bhilwara", "Bikaner", "Bundi", "Chittorgarh", "Churu", "Dausa", "Dholpur", "Dungarpur", "Hanumangarh", "Jaipur", "Jaisalmer", "Jalore", "Jhalawar", "Jhunjhunu", "Jodhpur", "Karauli", "Kota", "Nagaur", "Pali", "Pratapgarh", "Rajsamand", "Sawai Madhopur", "Sikar", "Sirohi", "Sri Ganganagar", "Tonk", "Udaipur"],
-        "Sikkim": ["East Sikkim", "North Sikkim", "South Sikkim", "West Sikkim"],
-        "Tamil Nadu": ["Ariyalur", "Chennai", "Coimbatore", "Cuddalore", "Dharmapuri", "Dindigul", "Erode", "Kanchipuram", "Kanyakumari", "Karur", "Krishnagiri", "Madurai", "Nagapattinam", "Namakkal", "Nilgiris", "Perambalur", "Pudukkottai", "Ramanathapuram", "Salem", "Sivaganga", "Thanjavur", "Theni", "Thoothukudi", "Tiruchirappalli", "Tirunelveli", "Tiruppur", "Tiruvallur", "Tiruvannamalai", "Tiruvarur", "Vellore", "Viluppuram", "Virudhunagar"],
-        "Telangana": ["Adilabad", "Bhadradri Kothagudem", "Hyderabad", "Jagtial", "Jangaon", "Jayashankar Bhupalpally", "Jogulamba Gadwal", "Kamareddy", "Karimnagar", "Khammam", "Kumuram Bheem", "Mahabubabad", "Mahabubnagar", "Mancherial", "Medak", "Medchal", "Nagarkurnool", "Nalgonda", "Nirmal", "Nizamabad", "Peddapalli", "Rajanna Sircilla", "Rangareddy", "Sangareddy", "Siddipet", "Suryapet", "Vikarabad", "Wanaparthy", "Warangal (Rural)", "Warangal (Urban)", "Yadadri Bhuvanagiri"],
-        "Tripura": ["Dhalai", "Gomati", "Khowai", "North Tripura", "Sepahijala", "South Tripura", "Unakoti", "West Tripura"],
-        "Uttar Pradesh": ["Agra", "Aligarh", "Allahabad", "Ambedkar Nagar", "Amethi", "Amroha", "Auraiya", "Azamgarh", "Baghpat", "Bahraich", "Ballia", "Balrampur", "Banda", "Barabanki", "Bareilly", "Basti", "Bhadohi", "Bijnor", "Budaun", "Bulandshahr", "Chandauli", "Chitrakoot", "Deoria", "Etah", "Etawah", "Faizabad", "Farrukhabad", "Fatehpur", "Firozabad", "Gautam Buddha Nagar", "Ghaziabad", "Ghazipur", "Gonda", "Gorakhpur", "Hamirpur", "Hapur", "Hardoi", "Hathras", "Jalaun", "Jaunpur", "Jhansi", "Kannauj", "Kanpur Dehat", "Kanpur Nagar", "Kasganj", "Kaushambi", "Kheri", "Kushinagar", "Lalitpur", "Lucknow", "Maharajganj", "Mahoba", "Mainpuri", "Mathura", "Mau", "Meerut", "Mirzapur", "Moradabad", "Muzaffarnagar", "Pilibhit", "Pratapgarh", "Raebareli", "Rampur", "Saharanpur", "Sambhal", "Sant Kabir Nagar", "Shahjahanpur", "Shamli", "Shravasti", "Siddharthnagar", "Sitapur", "Sonbhadra", "Sultanpur", "Unnao", "Varanasi"],
-        "Uttarakhand": ["Almora", "Bageshwar", "Chamoli", "Champawat", "Dehradun", "Haridwar", "Nainital", "Pauri Garhwal", "Pithoragarh", "Rudraprayag", "Tehri Garhwal", "Udham Singh Nagar", "Uttarkashi"],
-        "West Bengal": ["Alipurduar", "Bankura", "Birbhum", "Cooch Behar", "Dakshin Dinajpur", "Darjeeling", "Hooghly", "Howrah", "Jalpaiguri", "Jhargram", "Kalimpong", "Kolkata", "Malda", "Murshidabad", "Nadia", "North 24 Parganas", "Paschim Bardhaman", "Paschim Medinipur", "Purba Bardhaman", "Purba Medinipur", "Purulia", "South 24 Parganas", "Uttar Dinajpur"],
-        "Other": ["Other"]
-    };
-
-    function initLocation() {
-        const stateList = document.getElementById('stateList');
-        const sortedStates = Object.keys(locationData).sort();
-        
-        stateList.innerHTML = '';
-        sortedStates.forEach(state => {
-            const option = document.createElement('option');
-            option.value = state;
-            stateList.appendChild(option);
-        });
+{% block extra_css %}
+<style>
+    /* --- Animations --- */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
+    .animate-up {
+        animation: fadeInUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+        opacity: 0; /* Start hidden */
+    }
+
+    /* --- Form Container --- */
+    .form-card-container {
+        max-width: 750px;
+        margin: 50px auto 80px;
+        background: white;
+        padding: 50px;
+        border-radius: 24px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.06);
+        border: 1px solid rgba(0,0,0,0.02);
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    .form-header h2 {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: var(--dark);
+        margin-bottom: 10px;
+        letter-spacing: -0.5px;
+    }
+    .form-header p {
+        color: var(--gray);
+        font-size: 1.1rem;
+    }
+
+    /* --- Input Styles --- */
+    .form-group {
+        margin-bottom: 24px;
+    }
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 700;
+        color: var(--dark);
+        font-size: 0.95rem;
+    }
+    .form-input, .form-textarea {
+        width: 100%;
+        padding: 16px 20px;
+        border: 2px solid #e5e7eb;
+        border-radius: 14px;
+        font-size: 1rem;
+        transition: all 0.2s ease;
+        background: #fcfcfc;
+        color: var(--dark);
+    }
+    .form-input:focus, .form-textarea:focus {
+        border-color: var(--primary);
+        background: white;
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(255, 56, 92, 0.1);
+    }
+    .form-input::placeholder { color: #aaa; }
+
+    /* --- Location Section (Highlighted) --- */
+    .location-box {
+        background: #f8fafc;
+        padding: 30px;
+        border-radius: 20px;
+        border: 1px solid #edf2f7;
+        margin-bottom: 30px;
+        position: relative;
+    }
+    .location-label-tag {
+        position: absolute;
+        top: -12px;
+        left: 20px;
+        background: var(--dark);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    /* --- Submit Button --- */
+    .submit-btn {
+        width: 100%;
+        padding: 20px;
+        background: linear-gradient(135deg, #ff385c 0%, #e61e4d 100%);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        margin-top: 15px;
+        box-shadow: 0 10px 25px rgba(255, 56, 92, 0.25);
+    }
+    .submit-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 15px 35px rgba(255, 56, 92, 0.35);
+    }
+
+    /* --- Responsive Grid --- */
+    .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    @media(max-width: 768px) {
+        .grid-2 { grid-template-columns: 1fr; }
+        .form-card-container { padding: 30px 20px; margin-top: 20px; }
+        .form-header h2 { font-size: 1.8rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container animate-up">
+    
+    <div class="form-card-container">
+        <div class="form-header">
+            <h2>List your Building</h2>
+            <p>Start by adding the main property details. You can add individual rooms in the next step.</p>
+        </div>
+        
+        <form method="POST">
+            <div class="form-group">
+                <label class="form-label">Building Name</label>
+                <input type="text" name="title" class="form-input" placeholder="e.g. Sunrise Apartments, Block A" required>
+            </div>
+
+            <!-- Enhanced Location Section -->
+            <div class="location-box">
+                <div class="location-label-tag"><i class="fas fa-map-marker-alt"></i> Location Details</div>
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:0.9rem;">State</label>
+                        <input type="text" name="state" id="stateInput" list="stateList" 
+                               class="form-input"
+                               onchange="populateCities()" 
+                               placeholder="Select state..."
+                               required>
+                        <datalist id="stateList"></datalist>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:0.9rem;">City / District</label>
+                        <input type="text" name="city" id="cityInput" list="cityList" 
+                               class="form-input"
+                               placeholder="Select district..."
+                               required>
+                        <datalist id="cityList"></datalist>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" style="font-size:0.9rem;">Street / Area / Landmark</label>
+                    <input type="text" name="nearby_location" class="form-input" placeholder="e.g. Near Central Park, Sector 5" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Building Image URL (Main Facade)</label>
+                <input type="text" name="image_url" class="form-input" placeholder="https://..." required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea name="description" rows="5" class="form-textarea" placeholder="Tell us about the building, facilities, parking, etc..."></textarea>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                Next Step: Add Rooms <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>
+            </button>
+        </form>
+    </div>
+
+</div>
+
+<!-- JS for States/Cities -->
+<script>
+    const locationData = {
+        "Delhi": ["New Delhi", "North Delhi", "South Delhi"],
+        "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Nashik"],
+        "Karnataka": ["Bangalore", "Mysore", "Mangalore"],
+        "Telangana": ["Hyderabad", "Warangal"],
+        "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai"],
+        "West Bengal": ["Kolkata", "Howrah", "Darjeeling", "Siliguri"],
+        "Uttar Pradesh": ["Lucknow", "Kanpur", "Varanasi", "Noida"],
+        "Haryana": ["Gurgaon", "Faridabad"],
+        "Rajasthan": ["Jaipur", "Udaipur", "Jodhpur"],
+        "Gujarat": ["Ahmedabad", "Surat", "Vadodara"],
+        "Other": ["Other"]
+    };
+    
+    function initLocation() {
+        const stateList = document.getElementById('stateList');
+        for(let state in locationData) {
+            let opt = document.createElement('option');
+            opt.value = state;
+            stateList.appendChild(opt);
+        }
+    }
     function populateCities() {
-        const stateInput = document.getElementById('stateInput');
+        const stateVal = document.getElementById('stateInput').value;
         const cityList = document.getElementById('cityList');
-        const cityInput = document.getElementById('cityInput');
-        const selectedState = stateInput.value;
-        
-        // Clear previous suggestions
         cityList.innerHTML = '';
-        
-        // Clear current city input value when state changes to encourage re-selection
-        cityInput.value = ''; 
-        
-        if (selectedState && locationData[selectedState]) {
-            locationData[selectedState].forEach(city => {
-                const option = document.createElement('option');
-                option.value = city;
-                cityList.appendChild(option);
+        if(locationData[stateVal]) {
+            locationData[stateVal].forEach(c => {
+                let opt = document.createElement('option');
+                opt.value = c;
+                cityList.appendChild(opt);
             });
         }
     }
-
     document.addEventListener('DOMContentLoaded', initLocation);
 </script>
 {% endblock %}

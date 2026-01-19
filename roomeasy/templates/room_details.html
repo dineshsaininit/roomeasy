@@ -268,6 +268,14 @@
                     <i class="fas fa-map-marker-alt"></i> 
                     {{ room.address }}
                 </p>
+                
+                {% if session.get('user') == room.owner_id %}
+                <div style="margin-top: 20px;">
+                     <a href="/edit_room/{{ room.id }}" style="padding: 10px 20px; background: #eee; border-radius: 20px; color: #333; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: background 0.2s;">
+                        <i class="fas fa-edit" style="margin-right: 5px;"></i> Edit Details
+                    </a>
+                </div>
+                {% endif %}
             </div>
 
             <!-- Right: Action Card -->
@@ -325,24 +333,15 @@
             <img src="{{ room.image_url }}" onerror="this.src='https://via.placeholder.com/100'">
         </button>
         
-        <!-- If backend supports room.images, loop here. -->
-        {% if room.images %}
-            {% for img in room.images %}
-            <button class="thumb-btn" onclick="updateHeroImage('{{ img }}', this)">
-                <img src="{{ img }}" onerror="this.src='https://via.placeholder.com/100'">
-            </button>
+        <!-- Additional Images from DB -->
+        {% if all_images %}
+            {% for img in all_images %}
+                {% if img != room.image_url %}
+                <button class="thumb-btn" onclick="updateHeroImage('{{ img }}', this)">
+                    <img src="{{ img }}" onerror="this.src='https://via.placeholder.com/100'">
+                </button>
+                {% endif %}
             {% endfor %}
-        {% else %}
-            <!-- Demo placeholders if no extra images are in DB yet to show the effect -->
-            <button class="thumb-btn" onclick="updateHeroImage('https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', this)">
-                <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80">
-            </button>
-            <button class="thumb-btn" onclick="updateHeroImage('https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', this)">
-                <img src="https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80">
-            </button>
-            <button class="thumb-btn" onclick="updateHeroImage('https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80', this)">
-                <img src="https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80">
-            </button>
         {% endif %}
     </div>
 
@@ -377,8 +376,6 @@
                     </p>
                     <div class="host-actions">
                         <button class="host-btn" onclick="window.location.href='mailto:{{ host_email }}'">Contact Host</button>
-                        <!-- Optional link to profile if you want to implement a public profile page later -->
-                        <!-- <button class="host-btn">View Profile</button> -->
                     </div>
                 </div>
             </div>

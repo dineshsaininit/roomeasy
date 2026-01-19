@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    /* Reuse Awesome Upload Styles */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-up { animation: fadeInUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
+    .form-card-container { max-width: 750px; margin: 50px auto 80px; background: white; padding: 50px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.02); }
+    .form-header { text-align: center; margin-bottom: 40px; }
+    .form-header h2 { font-size: 2.2rem; font-weight: 800; color: var(--dark); margin-bottom: 10px; }
+    .form-group { margin-bottom: 24px; }
+    .form-label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--dark); font-size: 0.95rem; }
+    .form-input, .form-textarea { width: 100%; padding: 16px 20px; border: 2px solid #e5e7eb; border-radius: 14px; font-size: 1rem; transition: all 0.2s ease; background: #fcfcfc; color: var(--dark); }
+    .form-input:focus, .form-textarea:focus { border-color: var(--primary); background: white; outline: none; box-shadow: 0 0 0 4px rgba(255, 56, 92, 0.1); }
+    .location-box { background: #f8fafc; padding: 30px; border-radius: 20px; border: 1px solid #edf2f7; margin-bottom: 30px; position: relative; }
+    .location-label-tag { position: absolute; top: -12px; left: 20px; background: var(--dark); color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+    .submit-btn { width: 100%; padding: 20px; background: linear-gradient(135deg, #ff385c 0%, #e61e4d 100%); color: white; border: none; border-radius: 50px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; margin-top: 15px; box-shadow: 0 10px 25px rgba(255, 56, 92, 0.25); }
+    .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(255, 56, 92, 0.35); }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media(max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } .form-card-container { padding: 30px 20px; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container animate-up">
+    <div class="form-card-container">
+        <div class="form-header">
+            <h2>Edit Building Details</h2>
+            <p style="color:var(--gray)">Update property information</p>
+        </div>
+        
+        <form method="POST">
+            <div class="form-group">
+                <label class="form-label">Building Name</label>
+                <input type="text" name="title" class="form-input" value="{{ building.title }}" required>
+            </div>
+
+            <div class="location-box">
+                <div class="location-label-tag"><i class="fas fa-map-marker-alt"></i> Location Details</div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:0.9rem;">State</label>
+                        <input type="text" name="state" id="stateInput" list="stateList" 
+                               class="form-input" value="{{ building.state or '' }}"
+                               required>
+                        <datalist id="stateList"></datalist>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" style="font-size:0.9rem;">City / District</label>
+                        <input type="text" name="city" id="cityInput" list="cityList" 
+                               class="form-input" value="{{ building.city or '' }}"
+                               required>
+                        <datalist id="cityList"></datalist>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label class="form-label" style="font-size:0.9rem;">Street / Area / Landmark</label>
+                    <input type="text" name="nearby_location" class="form-input" value="{{ building.nearby_location or '' }}" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Building Image URL</label>
+                <input type="text" name="image_url" class="form-input" value="{{ building.image_url }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea name="description" rows="5" class="form-textarea">{{ building.description }}</textarea>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                Save Changes <i class="fas fa-save" style="margin-left: 8px;"></i>
+            </button>
+        </form>
+    </div>
+</div>
+<!-- Minimal JS for list -->
+<script>
+    const locationData = { "Delhi": ["New Delhi"], "Maharashtra": ["Mumbai", "Pune"], "Karnataka": ["Bangalore"] }; // Simplified for edit
+    function initLocation() {
+        const stateList = document.getElementById('stateList');
+        for(let state in locationData) {
+            let opt = document.createElement('option'); opt.value = state; stateList.appendChild(opt);
+        }
+    }
+    document.addEventListener('DOMContentLoaded', initLocation);
+</script>
+{% endblock %}

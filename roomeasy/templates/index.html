@@ -25,11 +25,6 @@
         to { opacity: 1; transform: translateX(0); }
     }
 
-    @keyframes zoomIn {
-        from { opacity: 0; transform: scale(0.95); }
-        to { opacity: 1; transform: scale(1); }
-    }
-
     /* Floating Animation for Background Elements */
     @keyframes float {
         0% { transform: translateY(0px) rotate(0deg); }
@@ -41,23 +36,19 @@
     .hero-section {
         position: relative;
         width: 100%;
-        height: 600px; /* Fixed height for consistency */
+        height: 600px; 
         margin-bottom: 50px;
-        
-        /* Cool Modern Background - Enhanced Gradient */
         background: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
-        /* Optional subtle pattern overlay */
         background-image: 
             radial-gradient(at 0% 0%, rgba(255, 237, 240, 0.6) 0px, transparent 50%),
             radial-gradient(at 100% 0%, rgba(235, 245, 255, 0.6) 0px, transparent 50%),
             radial-gradient(at 100% 100%, rgba(255, 245, 235, 0.4) 0px, transparent 50%);
-        
-        border-radius: 0 0 40px 40px; /* Softer curve */
-        box-shadow: 0 20px 60px -10px rgba(0,0,0,0.08); /* Sophisticated shadow */
+        border-radius: 0 0 40px 40px;
+        box-shadow: 0 20px 60px -10px rgba(0,0,0,0.08);
         overflow: hidden;
     }
 
-    /* Decorative Abstract Blobs for "Cool" effect - Animated */
+    /* Decorative Abstract Blobs */
     .hero-section::before {
         content: '';
         position: absolute;
@@ -88,12 +79,12 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 100px; /* More breathing room */
+        padding: 0 100px;
         opacity: 0;
         pointer-events: none;
         transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         gap: 60px;
-        z-index: 1; /* Sit above the background blobs */
+        z-index: 1; 
     }
 
     .slide.active { 
@@ -107,9 +98,9 @@
         height: 85%;
         display: flex;
         align-items: center;
-        justify-content: center; /* Center image in its box */
+        justify-content: center;
         opacity: 0;
-        perspective: 1000px; /* For 3D feel */
+        perspective: 1000px; 
     }
     
     .slide-img {
@@ -119,13 +110,12 @@
         height: auto;
         object-fit: contain;
         border-radius: 24px;
-        /* Refined shadow */
         box-shadow: 
             0 20px 40px rgba(0,0,0,0.1),
             0 10px 15px rgba(0,0,0,0.05); 
         transform: translateX(-60px) rotateY(10deg);
         transition: transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
-        background: white; /* Fallback background for transparent PNGs */
+        background: white;
     }
 
     /* Column 2: Details (Middle) */
@@ -138,13 +128,12 @@
     }
 
     .slide-details-col h1 {
-        font-size: 3.5rem; /* Larger Title */
+        font-size: 3.5rem;
         font-weight: 800;
         margin-bottom: 20px;
         line-height: 1.1;
         color: var(--dark);
         letter-spacing: -1px;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.05); /* Very subtle text shadow */
     }
 
     .slide-details-col p.location {
@@ -192,7 +181,7 @@
     .slide.active .slide-details-col {
         opacity: 1;
         transform: translateY(0);
-        transition: all 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s; /* Smoother easing */
+        transition: all 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s;
     }
 
     .slide.active .slide-action-col {
@@ -209,7 +198,7 @@
         background: var(--dark);
         color: white;
         padding: 22px 48px;
-        border-radius: 50px; /* Pill shape */
+        border-radius: 50px;
         font-weight: 700;
         font-size: 1.15rem;
         text-decoration: none;
@@ -263,7 +252,7 @@
 
     /* --- Section Headers --- */
     .section-header {
-        padding: 0 60px; /* Increased padding */
+        padding: 0 60px;
         margin-bottom: 24px;
         margin-top: 60px;
         display: flex;
@@ -276,7 +265,7 @@
     /* --- Scrollable Section Wrapper & Buttons --- */
     .scroll-wrapper {
         position: relative;
-        padding: 0 80px; /* Increased padding to prevent overlap */
+        padding: 0 80px; 
         opacity: 0;
         animation: fadeInUp 0.8s ease-out 0.5s forwards;
     }
@@ -294,7 +283,7 @@
     /* Navigation Buttons (Left/Right) for Lists */
     .nav-btn {
         position: absolute;
-        top: 45%; /* Slightly higher */
+        top: 45%;
         transform: translateY(-50%);
         width: 48px;
         height: 48px;
@@ -325,10 +314,8 @@
         border-color: var(--dark);
     }
     
-    /* Position buttons outside the content area (inside the padding gutter) */
     .nav-btn.prev { left: 20px; }
     .nav-btn.next { right: 20px; }
-
     .nav-btn i { font-size: 16px; }
 
     .scroll-card {
@@ -344,7 +331,7 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 40px 24px;
-        padding: 24px 60px; /* Increased padding */
+        padding: 24px 60px;
         opacity: 0;
         animation: fadeInUp 0.8s ease-out 0.8s forwards;
     }
@@ -361,41 +348,24 @@
     .card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
     .card:hover .card-img { transform: scale(1.12); }
 
-    .favorite-btn {
-        position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.85);
-        backdrop-filter: blur(4px);
-        border: none; color: rgba(0, 0, 0, 0.5); font-size: 20px; z-index: 10; cursor: pointer;
-        transition: all 0.2s; -webkit-text-stroke: 1px white;
-        display: flex; align-items: center; justify-content: center;
-        width: 36px; height: 36px; border-radius: 50%;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    .favorite-btn:hover { transform: scale(1.15); background: white; color: var(--primary); }
-    .favorite-btn.liked { color: #ff385c; opacity: 1; -webkit-text-stroke: 0; background: white; }
+    /* Hidden Favorite button for now as it needs Rooms table linkage */
+    .favorite-btn { display:none; }
     
     .card-info h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--dark); }
     .card-info p { font-size: 15px; color: var(--gray); margin-bottom: 6px; }
     .price { margin-top: 8px; font-size: 17px; font-weight: 800; color: var(--dark); }
     .price span { font-weight: 400; color: var(--gray); font-size: 15px; }
 
-    /* Animation Keyframes for Heart */
-    @keyframes heart-bounce { 0% { transform: scale(1); } 40% { transform: scale(1.6); } 70% { transform: scale(0.85); } 100% { transform: scale(1); } }
-    .favorite-btn.animating i { animation: heart-bounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-
     @media (max-width: 1024px) {
         .hero-section { height: auto; padding: 60px 0; border-radius: 0 0 24px 24px; }
         .slide { flex-direction: column; text-align: center; padding: 0 24px; gap: 30px; position: relative; display: none; opacity: 1; }
         .slide.active { display: flex; }
-        
         .slide-img-col { width: 100%; height: 320px; margin-bottom: 10px; flex: initial; transform: none !important; perspective: none; }
         .slide-img { max-height: 100%; width: auto; transform: none !important; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        
         .slide-details-col { text-align: center; width: 100%; transform: none !important; flex: initial; }
         .slide-details-col h1 { font-size: 2.5rem; margin-bottom: 12px; }
         .slide-details-col p.location { justify-content: center; font-size: 1.1rem; }
-        
         .slide-action-col { width: 100%; justify-content: center; margin-top: 10px; transform: none !important; flex: initial; }
-        
         .hero-nav-btn { bottom: 20px; width: 48px; height: 48px; font-size: 16px; }
         .hero-nav-btn.prev { left: 50%; right: auto; margin-left: -60px; }
         .hero-nav-btn.next { right: 50%; left: auto; margin-right: -60px; }
@@ -403,7 +373,7 @@
     
     @media (max-width: 768px) {
         .section-header, .scroll-wrapper, .listings-grid { padding-left: 24px; padding-right: 24px; }
-        .nav-btn { display: none; } /* Hide list nav buttons on mobile */
+        .nav-btn { display: none; }
         .hero-section { height: auto; padding-bottom: 80px; }
     }
 </style>
@@ -412,29 +382,29 @@
 {% block content %}
 <div class="front-page-container">
 
-    <!-- 1. HERO SLIDESHOW (Redesigned) -->
-    {% if not search_query and not filter_type and featured_rooms %}
+    <!-- 1. HERO SLIDESHOW (Featured Buildings) -->
+    {% if not search_query and featured_buildings %}
     <div class="hero-section">
-        {% for room in featured_rooms %}
+        {% for building in featured_buildings %}
         <div class="slide {% if loop.first %}active{% endif %}">
             
-            <!-- Left: Image (Original size constrained) -->
+            <!-- Left: Image -->
             <div class="slide-img-col">
-                <img src="{{ room.image_url }}" class="slide-img" onerror="this.src='https://via.placeholder.com/800x600'">
+                <img src="{{ building.image_url }}" class="slide-img" onerror="this.src='https://via.placeholder.com/800x600'">
             </div>
 
             <!-- Middle: Details -->
             <div class="slide-details-col">
-                <h1>{{ room.title }}</h1>
-                <p class="location"><i class="fas fa-map-marker-alt"></i> {{ room.address.split(',')[0] if ',' in room.address else room.address }}</p>
+                <h1>{{ building.title }}</h1>
+                <p class="location"><i class="fas fa-map-marker-alt"></i> {{ building.address.split(',')[0] if ',' in building.address else building.address }}</p>
                 <div class="price-tag">
-                    Starting at <span style="color:var(--primary); font-weight:800; font-size:1.1em;">₹{{ room.price_per_month }}</span><span style="color:var(--gray); font-size:0.9em;">/month</span>
+                    <span style="color:var(--primary); font-weight:800; font-size:1.1em;">View Available Rooms</span>
                 </div>
             </div>
 
             <!-- Right: Action -->
             <div class="slide-action-col">
-                <a href="/room/{{ room.id }}" class="slide-btn">
+                <a href="/building/{{ building.id }}" class="slide-btn">
                     Explore Now <i class="fas fa-arrow-right"></i>
                 </a>
             </div>
@@ -442,93 +412,48 @@
         </div>
         {% endfor %}
 
-        <!-- Navigation Buttons (Moved to bottom right in CSS) -->
+        <!-- Navigation Buttons -->
         <button class="hero-nav-btn prev" onclick="changeSlide(-1)"><i class="fas fa-chevron-left"></i></button>
         <button class="hero-nav-btn next" onclick="changeSlide(1)"><i class="fas fa-chevron-right"></i></button>
     </div>
     {% endif %}
 
-    <!-- 2. CATEGORIES Removed as requested -->
-
-    <!-- Search Feedback & No Results Logic -->
+    <!-- Search Feedback -->
     {% if search_query %}
     <div style="padding: 20px 60px;">
-        {% if rooms %}
+        {% if buildings %}
             <h2>Results for "{{ search_query }}"</h2>
         {% else %}
             <div style="padding: 20px 0;">
                 <h2>No results found for "{{ search_query }}"</h2>
-                <p style="color: var(--gray); font-size: 16px; margin-top: 8px;">We couldn't find any rooms in that location. Check out these popular places instead:</p>
+                <p style="color: var(--gray); font-size: 16px; margin-top: 8px;">Try searching for a different city or area.</p>
             </div>
         {% endif %}
     </div>
-    {% elif filter_type == 'trending' %}
-    <div style="padding: 0 60px; margin-top: 20px;">
-        <h2>Trending Homes</h2>
-        <p style="color: var(--gray);">Most popular properties right now.</p>
-    </div>
     {% endif %}
 
 
-    <!-- 3. RECENTLY VIEWED (Horizontal Scroll) - Hide if filtering -->
-    {% if recently_viewed_rooms and not search_query and not filter_type %}
+    <!-- 2. RECOMMENDED BUILDINGS (Horizontal Scroll) -->
+    {% if recommended_buildings and not search_query %}
     <div class="section-header">
         <div>
-            <h2>Recently Viewed</h2>
-            <p>Pick up where you left off</p>
-        </div>
-    </div>
-    <div class="scroll-wrapper" id="recent-wrapper">
-        <button class="nav-btn prev" onclick="scrollSection('recent-wrapper', -1)"><i class="fas fa-chevron-left"></i></button>
-        <div class="horizontal-scroll">
-            {% for room in recently_viewed_rooms %}
-            <div class="scroll-card">
-                <a href="/room/{{ room.id }}" class="card">
-                    <div class="image-container">
-                        <button class="favorite-btn {% if room.id in liked_room_ids %}liked{% endif %}" onclick="toggleLike(event, {{ room.id }})">
-                            <i class="fas fa-heart"></i>
-                        </button>
-                        <img src="{{ room.image_url }}" class="card-img" onerror="this.src='https://via.placeholder.com/600x600'">
-                    </div>
-                    <div class="card-info">
-                        <h3>{{ room.address }}</h3>
-                        <p>{{ room.title }}</p>
-                        <div class="price">₹{{ room.price_per_month }} <span>month</span></div>
-                    </div>
-                </a>
-            </div>
-            {% endfor %}
-        </div>
-        <button class="nav-btn next" onclick="scrollSection('recent-wrapper', 1)"><i class="fas fa-chevron-right"></i></button>
-    </div>
-    {% endif %}
-
-
-    <!-- 4. RECOMMENDED / LOCATION BASED (Horizontal Scroll) -->
-    <!-- Modified logic: Show if search/filter is empty OR if search matches nothing (so we show fallback) -->
-    {% if recommended_rooms and (not search_query or not rooms) and not filter_type %}
-    <div class="section-header">
-        <div>
-            <h2>Find your place to live</h2>
-            <p>Popular homes recommended for you</p>
+            <h2>Popular Buildings</h2>
+            <p>Top rated locations for you</p>
         </div>
     </div>
     <div class="scroll-wrapper" id="recommend-wrapper">
         <button class="nav-btn prev" onclick="scrollSection('recommend-wrapper', -1)"><i class="fas fa-chevron-left"></i></button>
         <div class="horizontal-scroll">
-            {% for room in recommended_rooms %}
+            {% for building in recommended_buildings %}
             <div class="scroll-card">
-                <a href="/room/{{ room.id }}" class="card">
+                <a href="/building/{{ building.id }}" class="card">
                     <div class="image-container">
-                        <button class="favorite-btn {% if room.id in liked_room_ids %}liked{% endif %}" onclick="toggleLike(event, {{ room.id }})">
-                            <i class="fas fa-heart"></i>
-                        </button>
-                        <img src="{{ room.image_url }}" class="card-img" onerror="this.src='https://via.placeholder.com/600x600'">
+                        <img src="{{ building.image_url }}" class="card-img" onerror="this.src='https://via.placeholder.com/600x600'">
                     </div>
                     <div class="card-info">
-                        <h3>{{ room.address }}</h3>
-                        <p>{{ room.title }}</p>
-                        <div class="price">₹{{ room.price_per_month }} <span>month</span></div>
+                        <h3>{{ building.title }}</h3>
+                        <p>{{ building.city }}, {{ building.state }}</p>
+                        <div class="price" style="color:var(--primary); font-size:15px;">View Details</div>
                     </div>
                 </a>
             </div>
@@ -539,44 +464,40 @@
     {% endif %}
 
 
-    <!-- 5. ALL LISTINGS GRID -->
-    {% if rooms %}
+    <!-- 3. ALL BUILDINGS GRID -->
+    {% if buildings %}
     <div class="section-header">
-        {% if not search_query and not filter_type %}
-            <h2>Explore All</h2>
+        {% if not search_query %}
+            <h2>Explore All Buildings</h2>
         {% endif %}
     </div>
     <div class="listings-grid">
-        {% for room in rooms %}
-        <a href="/room/{{ room.id }}" class="card">
+        {% for building in buildings %}
+        <a href="/building/{{ building.id }}" class="card">
             <div class="image-container">
-                <button class="favorite-btn {% if room.id in liked_room_ids %}liked{% endif %}" onclick="toggleLike(event, {{ room.id }})">
-                    <i class="fas fa-heart"></i>
-                </button>
-                <img src="{{ room.image_url }}" alt="{{ room.title }}" class="card-img" onerror="this.src='https://via.placeholder.com/600x600'">
+                <img src="{{ building.image_url }}" alt="{{ building.title }}" class="card-img" onerror="this.src='https://via.placeholder.com/600x600'">
             </div>
             
             <div class="card-info">
                 <div style="display:flex; justify-content:space-between;">
-                    <h3>{{ room.address }}</h3>
+                    <h3>{{ building.title }}</h3>
                 </div>
-                <p>{{ room.title }}</p>
-                <div class="price">₹{{ room.price_per_month }} <span>month</span></div>
+                <p>{{ building.address }}</p>
+                <div class="price" style="color:var(--primary); font-size:15px;">Check Availability</div>
             </div>
         </a>
         {% endfor %}
     </div>
-    {% elif not recommended_rooms %}
-    <!-- Only show this if absolutely NO data (search empty, recommendations empty) -->
+    {% elif not recommended_buildings %}
     <div style="text-align: center; padding: 50px;">
-        <h3>No rooms available anywhere.</h3>
-        <a href="/upload" class="btn-primary" style="display:inline-block; margin-top:20px;">Upload Now</a>
+        <h3>No buildings found.</h3>
+        <a href="/upload" class="btn-primary" style="display:inline-block; margin-top:20px;">List your Building</a>
     </div>
     {% endif %}
 
 </div>
 
-<!-- JavaScript for Slideshow, Like Button & Scrolling -->
+<!-- JavaScript for Slideshow & Scrolling -->
 <script>
     // --- ADVANCED SLIDESHOW LOGIC ---
     let currentSlide = 0;
@@ -620,39 +541,6 @@
             left: scrollAmount * direction,
             behavior: 'smooth'
         });
-    }
-
-    // --- LIKE BUTTON LOGIC ---
-    async function toggleLike(event, roomId) {
-        event.preventDefault();
-        event.stopPropagation();
-        
-        const btn = event.currentTarget;
-        const wasLiked = btn.classList.contains('liked');
-        
-        // Optimistic UI
-        if (wasLiked) {
-            btn.classList.remove('liked');
-        } else {
-            btn.classList.add('liked');
-            btn.classList.remove('animating');
-            void btn.offsetWidth; // Force Reflow
-            btn.classList.add('animating');
-        }
-
-        try {
-            const response = await fetch(`/toggle_wishlist/${roomId}`, { method: 'POST' });
-            
-            if (response.status === 401) {
-                if (wasLiked) btn.classList.add('liked'); else btn.classList.remove('liked');
-                alert("Please login to like properties!");
-                window.location.href = "/login";
-                return;
-            }
-        } catch (error) {
-            console.error('Error toggling like:', error);
-            if (wasLiked) btn.classList.add('liked'); else btn.classList.remove('liked');
-        }
     }
 </script>
 {% endblock %}

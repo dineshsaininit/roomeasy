@@ -1,132 +1,102 @@
 {% extends 'base.html' %}
 
+{% block extra_css %}
+<style>
+    /* Reuse Add Room Styles */
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-up { animation: fadeInUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; opacity: 0; }
+    .form-card-container { max-width: 800px; margin: 40px auto 80px; background: white; padding: 50px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.06); }
+    .form-header { text-align: center; margin-bottom: 30px; }
+    .form-header h2 { font-size: 2rem; font-weight: 800; color: var(--dark); margin-bottom: 5px; }
+    .form-group { margin-bottom: 24px; }
+    .form-label { display: block; margin-bottom: 8px; font-weight: 700; color: var(--dark); font-size: 0.95rem; }
+    .form-input, .form-textarea { width: 100%; padding: 16px 20px; border: 2px solid #e5e7eb; border-radius: 14px; font-size: 1rem; transition: all 0.2s ease; background: #fcfcfc; color: var(--dark); }
+    .form-input:focus, .form-textarea:focus { border-color: var(--primary); background: white; outline: none; box-shadow: 0 0 0 4px rgba(255, 56, 92, 0.1); }
+    .amenities-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-top: 10px; }
+    .amenity-checkbox { display: none; }
+    .amenity-label { display: flex; align-items: center; justify-content: center; padding: 12px 15px; background: white; border: 2px solid #e5e7eb; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 0.9rem; color: #666; transition: all 0.2s; user-select: none; }
+    .amenity-label:hover { border-color: #ccc; transform: translateY(-2px); }
+    .amenity-checkbox:checked + .amenity-label { border-color: var(--primary); background: #fff0f3; color: var(--primary); box-shadow: 0 4px 12px rgba(255, 56, 92, 0.15); }
+    .image-upload-box { background: #f8fafc; padding: 24px; border-radius: 16px; border: 2px dashed #cbd5e1; transition: border-color 0.2s; }
+    .add-img-btn { background: white; border: 2px solid #cbd5e1; color: #64748b; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 0.9rem; }
+    .submit-btn { width: 100%; padding: 20px; background: linear-gradient(135deg, #ff385c 0%, #e61e4d 100%); color: white; border: none; border-radius: 50px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; margin-top: 30px; box-shadow: 0 10px 25px rgba(255, 56, 92, 0.25); }
+    .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(255, 56, 92, 0.35); }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container" style="max-width: 600px; margin-top: 40px;">
-    
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
-        <h2>Edit Property</h2>
-        <a href="/profile" style="color: var(--dark); font-weight: 600; text-decoration: underline; font-size: 14px;">Cancel</a>
-    </div>
-
-    <div style="background: white; border: 1px solid #ddd; padding: 32px; border-radius: var(--radius); box-shadow: var(--shadow);">
+<div class="container animate-up">
+    <div class="form-card-container">
+        <div class="form-header">
+            <h2>Edit Room Details</h2>
+        </div>
+        
         <form method="POST">
-            <label>Property Title</label>
-            <input type="text" name="title" value="{{ room.title }}" required>
-
-            <!-- --- CHANGED: Split Address Selection for Edit --- -->
-            <div style="background: #f9f9f9; padding: 16px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 20px;">
-                <label style="color: var(--primary);">Location Details</label>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                    <div>
-                        <label style="font-size: 13px;">State</label>
-                        <!-- We try to pre-select existing value, or default to empty if column is null -->
-                        <select name="state" id="stateSelect" onchange="populateCities()" required style="width: 100%; padding: 12px; border: 1px solid #b0b0b0; border-radius: 8px; background: white;">
-                            <option value="">Select State</option>
-                        </select>
-                        <input type="hidden" id="existingState" value="{{ room.state or '' }}">
-                    </div>
-                    <div>
-                        <label style="font-size: 13px;">City</label>
-                        <select name="city" id="citySelect" required style="width: 100%; padding: 12px; border: 1px solid #b0b0b0; border-radius: 8px; background: white;">
-                            <option value="">Select City</option>
-                        </select>
-                        <input type="hidden" id="existingCity" value="{{ room.city or '' }}">
-                    </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div class="form-group">
+                    <label class="form-label">Room Title</label>
+                    <input type="text" name="title" class="form-input" value="{{ room.title }}" required>
                 </div>
-                
-                <div style="margin-top: 12px;">
-                    <label style="font-size: 13px;">Famous Nearby Location</label>
-                    <input type="text" name="nearby_location" value="{{ room.nearby_location or room.address }}" placeholder="e.g. Near Central Park" required style="margin-top: 4px;">
+                <div class="form-group">
+                    <label class="form-label">Monthly Rent (₹)</label>
+                    <input type="number" name="price" class="form-input" value="{{ room.price_per_month }}" required>
                 </div>
             </div>
-            <!-- ----------------------------------------- -->
 
-            <label>Monthly Rent ($)</label>
-            <input type="number" name="price" value="{{ room.price_per_month }}" step="0.01" required>
-
-            <label>Image URL</label>
-            <input type="text" name="image_url" value="{{ room.image_url }}" required>
+            <!-- Image Upload -->
+            <div class="form-group">
+                <label class="form-label">Room Images</label>
+                <div class="image-upload-box">
+                    <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 12px;">Main Image:</p>
+                    <input type="text" name="image_url" class="form-input" value="{{ room.image_url }}" required style="margin-bottom: 12px;">
+                    
+                    <div id="moreImagesContainer">
+                        {% if room.more_images %}
+                            {% for img in room.more_images %}
+                            <input type="text" name="more_images" class="form-input" value="{{ img }}" style="margin-bottom: 12px;">
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                    
+                    <button type="button" class="add-img-btn" onclick="addMoreImages()">
+                        <i class="fas fa-plus-circle"></i> Add Another Image
+                    </button>
+                </div>
+            </div>
             
-            <div style="margin-bottom: 20px;">
-                <label style="margin-bottom: 10px; display: block;">Current Image Preview:</label>
-                <img src="{{ room.image_url }}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #eee;">
+            <!-- Amenities -->
+            <div class="form-group">
+                <label class="form-label" style="margin-bottom: 15px;">Features & Amenities</label>
+                <div class="amenities-grid">
+                    {% set all_amenities = ["Wifi", "AC", "Attached Bath", "Geyser", "Furnished", "TV", "Fridge", "Washing Machine", "Power Backup", "Lift", "Parking", "CCTV", "Balcony", "Housekeeping", "Pet Friendly", "No Restrictions"] %}
+                    
+                    {% for amenity in all_amenities %}
+                    <label>
+                        <input type="checkbox" name="amenities" value="{{ amenity }}" class="amenity-checkbox" {% if room.amenities and amenity in room.amenities %}checked{% endif %}>
+                        <span class="amenity-label">{{ amenity }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea name="description" rows="4" class="form-textarea">{{ room.description }}</textarea>
             </div>
 
-            <!-- Amenities Section -->
-            {% set current_amenities = room.amenities if room.amenities else [] %}
-            <label style="margin-top: 20px; margin-bottom: 10px;">What this place offers</label>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
-                {% for amenity in ['Wifi', 'Air Conditioning', 'Free Parking', 'Attached Washroom', 'Kitchen', 'TV', 'Power Backup', 'Washing Machine', 'Geyser', 'Lift'] %}
-                <label style="font-weight: normal; display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                    <input type="checkbox" name="amenities" value="{{ amenity }}" {% if amenity in current_amenities %}checked{% endif %} style="width: auto; margin: 0;"> {{ amenity }}
-                </label>
-                {% endfor %}
-            </div>
-
-            <label>Description</label>
-            <textarea name="description" rows="6" required style="width: 100%; padding: 14px; border: 1px solid #b0b0b0; border-radius: 8px; font-family: inherit;">{{ room.description }}</textarea>
-
-            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 24px; padding: 16px; font-size: 16px; cursor: pointer;">Save Changes</button>
+            <button type="submit" class="submit-btn">
+                <i class="fas fa-save" style="margin-right: 8px;"></i> Save Changes
+            </button>
         </form>
     </div>
 </div>
 
 <script>
-    // Copy of location data logic
-    const locationData = {
-        "California": ["Los Angeles", "San Francisco", "San Diego", "Sacramento"],
-        "New York": ["New York City", "Buffalo", "Rochester", "Albany"],
-        "Texas": ["Houston", "Austin", "Dallas", "San Antonio"],
-        "Florida": ["Miami", "Orlando", "Tampa", "Jacksonville"],
-        "Illinois": ["Chicago", "Aurora", "Naperville"],
-        "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Nashik"],
-        "Delhi": ["New Delhi", "North Delhi", "South Delhi"],
-        "Karnataka": ["Bangalore", "Mysore", "Hubli"],
-        "Telangana": ["Hyderabad", "Warangal"],
-        "Other": ["Other"]
-    };
-
-    function initLocation() {
-        const stateSelect = document.getElementById('stateSelect');
-        const sortedStates = Object.keys(locationData).sort();
-        const existingState = document.getElementById('existingState').value;
-        
-        sortedStates.forEach(state => {
-            const option = document.createElement('option');
-            option.value = state;
-            option.textContent = state;
-            if (state === existingState) option.selected = true;
-            stateSelect.appendChild(option);
-        });
-        
-        // Initial population of cities
-        populateCities();
+    function addMoreImages() {
+        const container = document.getElementById('moreImagesContainer');
+        const input = document.createElement('input');
+        input.type = 'text'; input.name = 'more_images'; input.className = 'form-input'; input.placeholder = 'Additional Image URL'; input.style.marginBottom = '12px';
+        container.appendChild(input);
     }
-
-    function populateCities() {
-        const stateSelect = document.getElementById('stateSelect');
-        const citySelect = document.getElementById('citySelect');
-        const selectedState = stateSelect.value;
-        const existingCity = document.getElementById('existingCity').value;
-        
-        citySelect.innerHTML = '<option value="">Select City</option>';
-        
-        if (selectedState && locationData[selectedState]) {
-            locationData[selectedState].forEach(city => {
-                const option = document.createElement('option');
-                option.value = city;
-                option.textContent = city;
-                if (city === existingCity) option.selected = true;
-                citySelect.appendChild(option);
-            });
-            const otherOpt = document.createElement('option');
-            otherOpt.value = "Other";
-            otherOpt.textContent = "Other / Not Listed";
-            citySelect.appendChild(otherOpt);
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', initLocation);
 </script>
 {% endblock %}

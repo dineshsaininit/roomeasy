@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+    /* --- Animations --- */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-card {
+        opacity: 0; /* Start hidden for animation */
+        animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    }
+
+    /* --- Building Hero Section --- */
+    .building-hero {
+        background: white;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+        margin-bottom: 50px;
+        display: flex;
+        flex-wrap: wrap;
+        transition: transform 0.3s ease;
+    }
+    
+    .building-image-container {
+        flex: 1.3;
+        min-width: 400px;
+        position: relative;
+        overflow: hidden;
+        min-height: 450px;
+    }
+    
+    .building-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.8s ease;
+    }
+    
+    .building-hero:hover .building-image {
+        transform: scale(1.05); /* Gentle zoom on hero image */
+    }
+    
+    .building-info {
+        flex: 1;
+        padding: 50px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: white;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* --- Room Cards Grid --- */
+    .rooms-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); /* Slightly wider cards */
+        gap: 35px;
+        margin-top: 30px;
+    }
+
+    .room-card-link {
+        text-decoration: none; 
+        color: inherit; 
+        display: block;
+    }
+
+    .room-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid rgba(0,0,0,0.04);
+        position: relative;
+    }
+
+    .room-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+    }
+
+    .room-image-wrap {
+        height: 240px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .room-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s ease;
+    }
+
+    .room-card:hover .room-image {
+        transform: scale(1.1);
+    }
+
+    .room-details {
+        padding: 24px;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .room-price {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--primary);
+        margin-top: 10px;
+    }
+    
+    .amenity-badge {
+        display: inline-flex;
+        align-items: center;
+        background: #f3f4f6;
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        color: #555;
+        margin-right: 6px;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    .amenity-badge i { margin-right: 6px; color: var(--primary); }
+
+    /* --- Responsive --- */
+    @media (max-width: 768px) {
+        .building-hero { flex-direction: column; }
+        .building-image-container { min-height: 250px; min-width: 100%; }
+        .building-info { padding: 30px; }
+        .building-info h1 { font-size: 2rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1300px; margin-top:30px; padding-bottom: 80px;">
+    
+    <!-- Building Hero Section -->
+    <div class="building-hero animate-card" style="animation-delay: 0s;">
+        <div class="building-image-container">
+            <img src="{{ building.image_url }}" class="building-image" onerror="this.src='https://via.placeholder.com/800x600'">
+            <div style="position: absolute; top: 25px; left: 25px; background: rgba(255,255,255,0.95); padding: 8px 18px; border-radius: 30px; font-weight: 700; color: var(--dark); box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-building" style="color: var(--primary);"></i> Property Details
+            </div>
+        </div>
+        <div class="building-info">
+            <div style="margin-bottom: auto;">
+                <h1 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 12px; line-height: 1.1; color: var(--dark);">{{ building.title }}</h1>
+                <p style="font-size: 1.15rem; color: var(--gray); margin-bottom: 25px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-map-marker-alt" style="color: var(--primary);"></i> {{ building.address }}
+                </p>
+                
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 16px; margin-bottom: 30px; border: 1px solid #eee;">
+                    <h4 style="margin-bottom: 10px; font-size: 1rem; color: var(--dark); font-weight: 700;">About this property</h4>
+                    <p style="color: #666; line-height: 1.6; font-size: 1rem;">{{ building.description }}</p>
+                </div>
+            </div>
+
+            {% if session.get('user') == building.owner_id %}
+            <div style="display:flex; gap: 15px; flex-wrap:wrap;">
+                <a href="/add_room/{{ building.id }}" class="btn-primary" style="padding: 16px 32px; border-radius: 50px; font-weight: 700; font-size: 1.05rem; box-shadow: 0 8px 20px rgba(255, 56, 92, 0.3); display: inline-flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-plus-circle"></i> Add Room
+                </a>
+                <a href="/edit_building/{{ building.id }}" style="padding: 16px 24px; border-radius: 50px; font-weight: 700; font-size: 1.05rem; background: #eee; color: #333; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; transition: background 0.2s;">
+                    <i class="fas fa-edit"></i> Edit Building
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #eaeaea; margin: 50px 0;">
+
+    <!-- Rooms Section Header -->
+    <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 30px;" class="animate-card" style="animation-delay: 0.1s;">
+        <div>
+            <h2 style="font-weight: 800; color: var(--dark); font-size: 2rem;">Available Rooms</h2>
+            <p style="color: var(--gray); font-size: 1.1rem; margin-top: 5px;">Choose your perfect space within {{ building.title }}</p>
+        </div>
+        {% if rooms %}
+        <div style="background: #eefdf3; color: #166534; padding: 10px 20px; border-radius: 30px; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+            <i class="fas fa-check-circle" style="margin-right: 6px;"></i> {{ rooms|length }} Rooms Available
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Rooms Grid -->
+    {% if rooms %}
+    <div class="rooms-grid">
+        {% for room in rooms %}
+        <a href="/room/{{ room.id }}" class="room-card-link animate-card" style="animation-delay: {{ loop.index0 * 0.1 + 0.2 }}s;">
+            <div class="room-card">
+                <div class="room-image-wrap">
+                    <div style="position: absolute; top: 15px; right: 15px; z-index: 2; background: rgba(0,0,0,0.7); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; backdrop-filter: blur(4px); font-weight: 600; letter-spacing: 0.5px;">
+                        AVAILABLE
+                    </div>
+                    <img src="{{ room.image_url }}" class="room-image" onerror="this.src='https://via.placeholder.com/600x400'">
+                </div>
+                
+                <div class="room-details">
+                    <div>
+                        <h3 style="font-size: 1.4rem; font-weight: 700; margin-bottom: 12px; color: var(--dark); line-height: 1.3;">{{ room.title }}</h3>
+                        
+                        <!-- Amenities Preview (First 4) -->
+                        <div style="display: flex; flex-wrap: wrap; margin-bottom: 15px;">
+                            {% if room.amenities %}
+                                {% for amenity in room.amenities[:4] %}
+                                    <span class="amenity-badge">
+                                        {% if 'Wifi' in amenity %}<i class="fas fa-wifi"></i>
+                                        {% elif 'AC' in amenity %}<i class="fas fa-snowflake"></i>
+                                        {% elif 'TV' in amenity %}<i class="fas fa-tv"></i>
+                                        {% else %}<i class="fas fa-check"></i>{% endif %}
+                                        {{ amenity }}
+                                    </span>
+                                {% endfor %}
+                                {% if room.amenities|length > 4 %}
+                                    <span class="amenity-badge" style="background: transparent; border: 1px solid #ddd;">+{{ room.amenities|length - 4 }} more</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="amenity-badge"><i class="fas fa-star"></i> Standard Amenities</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div style="border-top: 1px solid #f0f0f0; padding-top: 15px; display: flex; align-items: center; justify-content: space-between; margin-top: auto;">
+                        <div class="room-price">
+                            ₹{{ room.price_per_month }}<span style="font-size: 0.9rem; font-weight: 500; color: var(--gray); margin-left: 4px;">/mo</span>
+                        </div>
+                        <div style="color: var(--primary); font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+                            View Details <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="padding: 100px 20px; text-align: center; background: white; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.03); border: 1px dashed #ddd;" class="animate-card" style="animation-delay: 0.2s;">
+        <div style="width: 80px; height: 80px; background: #f5f5f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: #bbb; font-size: 2rem;">
+            <i class="fas fa-door-open"></i>
+        </div>
+        <h3 style="color: var(--dark); font-weight: 700; margin-bottom: 8px;">No rooms listed yet</h3>
+        <p style="color: #888; max-width: 400px; margin: 0 auto;">There are currently no rooms listed in this building. Check back later or contact the property owner.</p>
+        {% if session.get('user') == building.owner_id %}
+            <a href="/add_room/{{ building.id }}" class="btn-primary" style="margin-top: 25px; display: inline-block;">
+                <i class="fas fa-plus"></i> List the First Room
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
