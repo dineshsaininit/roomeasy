@@ -23,7 +23,8 @@
     .hero-section {
         position: relative;
         width: 100%;
-        height: 600px;
+        min-height: 600px; /* Allow expansion */
+        height: auto;      /* Remove fixed height */
         margin-bottom: 40px;
         background: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
         background-image: 
@@ -51,16 +52,23 @@
 
     /* Hero Content Grid */
     .hero-content {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 0 100px; gap: 60px; z-index: 1;
+        position: relative; /* Changed from absolute */
+        width: 100%; 
+        height: auto;
+        min-height: 600px;
+        display: flex; align-items: flex-start; /* Align top for better expansion handling */
+        justify-content: space-between;
+        padding: 40px 100px; /* Add vertical padding */
+        gap: 60px; z-index: 1;
     }
 
     /* Column 1: Image */
     .hero-img-col {
-        flex: 1.3; height: 85%;
+        flex: 1.3; 
+        height: 500px; /* Fixed height for image container */
         display: flex; align-items: center; justify-content: center;
         perspective: 1000px;
+        position: sticky; top: 20px; /* Sticky if content is long */
     }
     .hero-main-img {
         max-width: 100%; max-height: 100%; width: auto; height: auto;
@@ -83,6 +91,7 @@
     .hero-details-col {
         flex: 1; text-align: left; color: var(--dark);
         animation: fadeInUp 0.9s ease-out 0.2s forwards; opacity: 0; transform: translateY(30px);
+        padding-top: 20px;
     }
     .hero-details-col h1 {
         font-size: 3rem; font-weight: 800; margin-bottom: 16px;
@@ -96,36 +105,36 @@
 
     /* Column 3: Action Card */
     .hero-action-col {
-        flex: 0.6; display: flex; justify-content: flex-end; align-items: center;
+        flex: 0.6; display: flex; justify-content: flex-end; align-items: flex-start;
         animation: fadeInUp 0.9s ease-out 0.4s forwards; opacity: 0; transform: translateY(30px);
     }
     .booking-card {
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(12px);
-        padding: 24px; border-radius: 20px;
+        padding: 20px; /* Compact padding */
+        border-radius: 20px;
         box-shadow: 0 15px 40px rgba(0,0,0,0.12);
         width: 100%; text-align: left;
         border: 1px solid rgba(255,255,255,0.8);
     }
     
     .booking-header {
-        display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px;
+        display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 15px;
     }
-    .booking-price { font-size: 24px; font-weight: 800; color: var(--dark); }
-    .booking-price span { font-size: 16px; font-weight: 400; color: var(--gray); }
-    /* Rating removed per request */
+    .booking-price { font-size: 22px; font-weight: 800; color: var(--dark); }
+    .booking-price span { font-size: 14px; font-weight: 400; color: var(--gray); }
 
-    /* New Booking Options Styles */
+    /* New Booking Options Styles - Compacted */
     .booking-options {
         display: flex;
         flex-direction: column;
-        gap: 12px;
-        margin-bottom: 24px;
+        gap: 8px; /* Reduced gap */
+        margin-bottom: 15px;
     }
     .option-item {
         border: 1px solid #ddd;
-        border-radius: 12px;
-        padding: 14px 16px;
+        border-radius: 10px;
+        padding: 10px 12px; /* Reduced padding */
         cursor: pointer;
         transition: all 0.2s;
         display: flex;
@@ -143,11 +152,11 @@
         box-shadow: 0 2px 8px rgba(255, 56, 92, 0.1);
     }
     .option-info { display: flex; flex-direction: column; }
-    .option-label { font-weight: 700; color: var(--dark); font-size: 0.95rem; }
-    .option-rate { font-size: 0.8rem; color: #666; margin-top: 2px; }
+    .option-label { font-weight: 700; color: var(--dark); font-size: 0.9rem; }
+    .option-rate { font-size: 0.75rem; color: #666; margin-top: 1px; }
     
     .option-check {
-        width: 20px; height: 20px; border-radius: 50%; border: 2px solid #ddd;
+        width: 18px; height: 18px; border-radius: 50%; border: 2px solid #ddd;
         display: flex; align-items: center; justify-content: center;
         transition: all 0.2s;
     }
@@ -156,32 +165,107 @@
         background: #ff385c;
     }
     .option-item.active .option-check::after {
-        content: ''; width: 8px; height: 8px; background: white; border-radius: 50%; display: block;
+        content: ''; width: 6px; height: 6px; background: white; border-radius: 50%; display: block;
     }
     
+    /* Payment UI Styles - Compacted */
+    #payment-section {
+        border-top: 1px solid #eee;
+        padding-top: 12px;
+        margin-top: 5px;
+        animation: fadeIn 0.4s ease;
+    }
+    .payment-breakdown {
+        background: #f9f9f9;
+        padding: 10px 12px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        font-size: 0.85rem;
+        color: #555;
+    }
+    .flex-between { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .total-row {
+        font-weight: 700; color: var(--dark); margin-top: 8px; padding-top: 8px; border-top: 1px dashed #ccc; font-size: 0.95rem;
+    }
+    
+    .payment-methods-grid {
+        display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 10px;
+    }
+    .pm-option {
+        border: 1px solid #ddd; border-radius: 6px; padding: 8px 4px;
+        text-align: center; cursor: pointer; transition: all 0.2s;
+        font-size: 0.8rem; display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .pm-option:hover { border-color: var(--primary); background: #fff5f7; }
+    .pm-option input { display: none; }
+    .pm-option.selected {
+        border-color: var(--primary); background: #fff0f3; color: var(--primary); font-weight: 600;
+        box-shadow: 0 2px 5px rgba(255, 56, 92, 0.15);
+    }
+    .pm-option i { font-size: 1.1rem; margin-bottom: 2px; }
+    
+    .upi-badges {
+        display: flex; gap: 6px; margin-bottom: 12px; justify-content: center;
+    }
+    .upi-badge {
+        background: #f0f2f5; padding: 3px 6px; border-radius: 4px; font-size: 0.7rem; color: #555;
+        display: flex; align-items: center; gap: 4px; border: 1px solid transparent;
+    }
+    .upi-badge i { font-size: 0.8rem; }
+
     .action-btn {
-        display: block; width: 100%; padding: 16px;
+        display: block; width: 100%; padding: 12px;
         background: linear-gradient(90deg, #ff385c 0%, #e61e4d 100%);
-        color: white; border-radius: 12px;
-        font-weight: 700; font-size: 1.1rem; text-decoration: none; text-align: center;
+        color: white; border-radius: 10px;
+        font-weight: 700; font-size: 1rem; text-decoration: none; text-align: center;
         transition: all 0.3s; border: none; cursor: pointer;
         box-shadow: 0 4px 15px rgba(255, 56, 92, 0.2);
     }
     .action-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255, 56, 92, 0.35); }
     
     .wishlist-btn {
-        margin-top: 15px; background: transparent; color: var(--gray);
-        border: none; padding: 10px; width: 100%; 
+        margin-top: 10px; background: transparent; color: var(--gray);
+        border: none; padding: 8px; width: 100%; 
         font-weight: 600; cursor: pointer; transition: all 0.2s;
-        text-decoration: underline;
+        text-decoration: underline; font-size: 0.9rem;
     }
     .wishlist-btn:hover { color: var(--dark); }
-    .no-charge { text-align: center; font-size: 13px; color: #717171; margin-top: 15px; font-weight: 400; }
+    
+    .no-charge { text-align: center; font-size: 12px; color: #717171; margin-top: 10px; font-weight: 400; }
 
+    /* New Style for Booked State */
+    .booked-state {
+        padding: 30px 20px;
+        text-align: center;
+        background: #f8f9fa;
+        border-radius: 12px;
+        border: 2px dashed #dee2e6;
+        color: #6c757d;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    .booked-state i {
+        font-size: 2.5rem;
+        color: #adb5bd;
+        margin-bottom: 5px;
+    }
+    .booked-state h3 {
+        margin: 0;
+        font-size: 1.2rem;
+        color: #495057;
+    }
+    .booked-state p {
+        margin: 0;
+        font-size: 0.9rem;
+    }
 
     /* --- Thumbnails / Gallery --- */
     .gallery-strip {
-        display: flex; gap: 16px; padding: 0 100px; margin-top: -80px; margin-bottom: 60px;
+        display: flex; gap: 16px; padding: 0 100px; margin-top: -20px; /* Adjusted margin */
+        margin-bottom: 60px;
         position: relative; z-index: 5; justify-content: center;
     }
     .thumb-btn {
@@ -237,11 +321,11 @@
     /* Responsive */
     @media (max-width: 1024px) {
         .hero-section { height: auto; padding: 40px 0; }
-        .hero-content { flex-direction: column; padding: 20px; text-align: center; gap: 30px; }
-        .hero-img-col { width: 100%; height: 300px; transform: none; }
+        .hero-content { flex-direction: column; padding: 20px; text-align: center; gap: 30px; align-items: center; }
+        .hero-img-col { width: 100%; height: 300px; transform: none; position: relative; top: 0; }
         .hero-details-col { width: 100%; transform: none !important; opacity: 1; text-align: center; }
         .hero-location { justify-content: center; }
-        .hero-action-col { width: 100%; justify-content: center; transform: none !important; opacity: 1; }
+        .hero-action-col { width: 100%; justify-content: center; transform: none !important; opacity: 1; align-items: center; }
         .booking-card { width: 100%; max-width: 400px; }
         .content-grid { grid-template-columns: 1fr; padding: 0 20px; }
         .gallery-strip { margin-top: 0; padding: 20px; overflow-x: auto; justify-content: flex-start; }
@@ -278,7 +362,7 @@
                 {% endif %}
             </div>
 
-            <!-- Right: Action Card -->
+            <!-- Right: Action Card (Payment Interface) -->
             <div class="hero-action-col">
                 <div class="booking-card">
                     <!-- Price Header -->
@@ -286,36 +370,102 @@
                         <div class="booking-price">₹{{ room.price_per_month }} <span>/month</span></div>
                     </div>
 
-                    <!-- 3 Selection Options -->
-                    <div class="booking-options">
-                        <div class="option-item" onclick="selectOption(this)">
-                            <div class="option-info">
-                                <span class="option-label">Previous Lock</span>
-                                <span class="option-rate">Pay 15%</span>
-                            </div>
-                            <div class="option-check"></div>
+                    {% if room.status == 'booked' %}
+                        <!-- Booked State UI -->
+                        <div class="booked-state">
+                            <i class="fas fa-door-closed"></i>
+                            <h3>No Longer Available</h3>
+                            <p>This room has been locked or rented.</p>
                         </div>
-                        <div class="option-item active" onclick="selectOption(this)">
-                            <div class="option-info">
-                                <span class="option-label">Lock & Rent</span>
-                                <span class="option-rate">Pay 100%</span>
+                    {% else %}
+                        <!-- 3 Selection Options -->
+                        <div class="booking-options">
+                            <div class="option-item" onclick="selectOption(this, 'lock', 15)">
+                                <div class="option-info">
+                                    <span class="option-label">Lock</span>
+                                    <span class="option-rate">Pay 15%</span>
+                                </div>
+                                <div class="option-check"></div>
                             </div>
-                            <div class="option-check"></div>
-                        </div>
-                        <div class="option-item" onclick="selectOption(this)">
-                            <div class="option-info">
-                                <span class="option-label">Rent</span>
-                                <span class="option-rate">Pay 100%</span>
+                            <div class="option-item active" onclick="selectOption(this, 'lock_rent', 100)">
+                                <div class="option-info">
+                                    <span class="option-label">Lock & Rent</span>
+                                    <span class="option-rate">Pay 100%</span>
+                                </div>
+                                <div class="option-check"></div>
                             </div>
-                            <div class="option-check"></div>
+                            <div class="option-item" onclick="selectOption(this, 'visit', 5)">
+                                <div class="option-info">
+                                    <span class="option-label">Visit</span>
+                                    <span class="option-rate">Pay 5%</span>
+                                </div>
+                                <div class="option-check"></div>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <a href="mailto:{{ host_email }}?subject=Inquiry about {{ room.title }}" class="action-btn">
-                        Request to Rent
-                    </a>
-                    
-                    <div class="no-charge">You won't be charged yet</div>
+                        
+                        <!-- Placeholder Action (Visible before clicking an option) -->
+                        <div id="initial-action">
+                            <button class="action-btn" onclick="triggerDefaultOption()">
+                                View Payment Options
+                            </button>
+                        </div>
+
+                        <!-- Dynamic Payment Section (Hidden until clicked) -->
+                        <div id="payment-section" style="display:none;">
+                            
+                            <!-- Breakdown -->
+                            <div class="payment-breakdown">
+                                <div class="flex-between">
+                                    <span>Selected Amount</span>
+                                    <span id="summary-base">₹0</span>
+                                </div>
+                                <div class="flex-between">
+                                    <span>Commission (5%)</span>
+                                    <span id="summary-commission">₹0</span>
+                                </div>
+                                <div class="flex-between total-row">
+                                    <span>Total Payable</span>
+                                    <span id="summary-total" style="color:var(--primary);">₹0</span>
+                                </div>
+                            </div>
+
+                            <!-- Payment Methods -->
+                            <h5 style="font-size: 0.85rem; margin-bottom: 6px; font-weight:700; color:var(--dark);">Select Payment Method</h5>
+                            <div class="payment-methods-grid">
+                                <label class="pm-option selected" onclick="selectPm(this)">
+                                    <input type="radio" name="pm" value="upi" checked>
+                                    <i class="fas fa-mobile-alt"></i> UPI
+                                </label>
+                                <label class="pm-option" onclick="selectPm(this)">
+                                    <input type="radio" name="pm" value="card">
+                                    <i class="far fa-credit-card"></i> Card
+                                </label>
+                                <label class="pm-option" onclick="selectPm(this)">
+                                    <input type="radio" name="pm" value="netbanking">
+                                    <i class="fas fa-university"></i> Net Bank
+                                </label>
+                            </div>
+                            
+                            <!-- UPI Badges (Decoration) -->
+                            <div class="upi-badges">
+                                <div class="upi-badge"><i class="fab fa-google-pay"></i> GPay</div>
+                                <div class="upi-badge"><i class="fas fa-wallet"></i> PhonePe</div>
+                                <div class="upi-badge"><i class="fas fa-rupee-sign"></i> BHIM</div>
+                            </div>
+
+                            <!-- Actual Form (Hidden logic handled by Razorpay script) -->
+                            <form id="booking-form" action="/book/{{ room.id }}" method="POST">
+                                <input type="hidden" name="booking_type" id="input-booking-type" value="lock_rent">
+                                <input type="hidden" name="amount" id="input-amount" value="0">
+                                
+                                <button type="button" class="action-btn" onclick="startRazorpayPayment(event)">
+                                    Pay Now <span id="btn-total-text" style="margin-left:5px;"></span>
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <div class="no-charge" id="no-charge-text">No payment processing on click</div>
+                    {% endif %}
                     
                     <button class="wishlist-btn" onclick="toggleLike(event, {{ room.id }})">
                         <i class="far fa-heart"></i> Save to Wishlist
@@ -350,7 +500,7 @@
         
         <!-- Left: Description & Details -->
         <div>
-            <!-- Improved Host Card with "Real Detail" look -->
+            <!-- Improved Host Card -->
             <div class="host-card" style="margin-bottom: 40px;">
                 <div class="host-avatar">
                     {% if host_image %}
@@ -365,10 +515,8 @@
                     <div class="verified-badge"><i class="fas fa-check"></i></div>
                 </div>
                 <div class="host-info">
-                    <!-- Display Real Name from DB -->
                     <h3>Hosted by {{ host_name }}</h3>
                     <div class="host-meta">
-                        <!-- Rating removed as requested. Only Identity verified remains -->
                         <span><i class="fas fa-shield-alt" style="color:#666;"></i> Identity Verified</span>
                     </div>
                     <p style="color:#666; margin-bottom:12px; font-size:0.95rem;">
@@ -403,7 +551,7 @@
             </div>
         </div>
 
-        <!-- Right: Map or Rules (Sticky if needed) -->
+        <!-- Right: Map or Rules -->
         <div>
             <h3 class="section-title">Location</h3>
             <div style="width:100%; height:300px; background:#eee; border-radius:20px; display:flex; align-items:center; justify-content:center; color:#888;">
@@ -424,30 +572,121 @@
 
 </div>
 
+<!-- Razorpay Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 <script>
+    const rentPerMonth = {{ room.price_per_month }};
+
     function updateHeroImage(url, btnElement) {
         const heroImg = document.getElementById('main-hero-img');
-        
-        // 1. Remove active state from all thumbs
         document.querySelectorAll('.thumb-btn').forEach(btn => btn.classList.remove('active'));
-        
-        // 2. Set active state on clicked thumb
         btnElement.classList.add('active');
-
-        // 3. Reset Animation
         heroImg.classList.remove('animate-enter-active');
         void heroImg.offsetWidth; // Trigger Reflow
-        
-        // 4. Change Source & Add Animation
         heroImg.src = url;
         heroImg.classList.add('animate-enter-active');
     }
 
-    function selectOption(element) {
-        // Remove active class from all options
+    // Triggered when any option is clicked
+    function selectOption(element, type, percent) {
+        // 1. Visual Active State
         document.querySelectorAll('.option-item').forEach(el => el.classList.remove('active'));
-        // Add active class to clicked option
         element.classList.add('active');
+
+        // 2. Hide Initial Button / Show Payment Interface
+        document.getElementById('initial-action').style.display = 'none';
+        document.getElementById('no-charge-text').style.display = 'none';
+        document.getElementById('payment-section').style.display = 'block';
+
+        // 3. Logic: Calculate Amounts (Including 5% Commission)
+        const base = rentPerMonth * (percent / 100);
+        const commission = base * 0.05; // 5% Commission
+        const total = base + commission;
+
+        // 4. Update UI Text
+        document.getElementById('summary-base').innerText = '₹' + Math.floor(base);
+        document.getElementById('summary-commission').innerText = '₹' + Math.floor(commission);
+        document.getElementById('summary-total').innerText = '₹' + Math.floor(total);
+        document.getElementById('btn-total-text').innerText = '₹' + Math.floor(total);
+
+        // 5. Update Hidden Inputs for Backend
+        document.getElementById('input-booking-type').value = type;
+        document.getElementById('input-amount').value = total.toFixed(2);
+    }
+    
+    // Helper to simulate click on default/active option
+    function triggerDefaultOption() {
+        const activeOption = document.querySelector('.option-item.active');
+        if(activeOption) activeOption.click();
+    }
+
+    // Select Payment Method Visuals
+    function selectPm(label) {
+        document.querySelectorAll('.pm-option').forEach(el => el.classList.remove('selected'));
+        label.classList.add('selected');
+        // Ensure radio is checked
+        const radio = label.querySelector('input[type="radio"]');
+        if(radio) radio.checked = true;
+    }
+
+    // --- Razorpay Integration ---
+    function startRazorpayPayment(event) {
+        event.preventDefault(); // Stop default form submit
+
+        const amountElement = document.getElementById('input-amount');
+        const amount = parseFloat(amountElement.value);
+        
+        if (!amount || amount <= 0) {
+            alert("Invalid amount calculation. Please refresh.");
+            return;
+        }
+
+        // Razorpay Options
+        var options = {
+            "key": "YOUR_RAZORPAY_KEY_ID", // Enter your Key ID here
+            "amount": Math.round(amount * 100), // Amount in currency subunits (paise)
+            "currency": "INR",
+            "name": "RoomEasy",
+            "description": "Room Booking Payment",
+            "image": "/static/images/newlogoroomeasy.png", // Logo for the modal
+            "handler": function (response){
+                // On Success: Inject Payment ID and submit form
+                const form = document.getElementById('booking-form');
+                
+                // Create hidden input for payment ID
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'razorpay_payment_id';
+                input.value = response.razorpay_payment_id;
+                form.appendChild(input);
+                
+                // Submit to backend
+                form.submit();
+            },
+            "prefill": {
+                // If you have user session details in template, inject them here:
+                "name": "{{ session.get('user_name', '') }}",
+                "email": "{{ session.get('user_email', '') }}"
+            },
+            "theme": {
+                "color": "#ff385c" // Match brand color
+            }
+        };
+        
+        try {
+            var rzp1 = new Razorpay(options);
+            
+            // Handle Payment Failures
+            rzp1.on('payment.failed', function (response){
+                alert("Payment Failed: " + response.error.description);
+            });
+            
+            rzp1.open();
+        } catch(e) {
+            console.error(e);
+            alert("Unable to open payment gateway. Please check connection.");
+        }
     }
 
     // Reuse wishlist logic

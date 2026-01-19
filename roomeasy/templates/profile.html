@@ -1,58 +1,338 @@
 {% extends 'base.html' %}
 
-{% block content %}
-<div class="container" style="max-width: 800px; margin-top: 40px;">
+{% block extra_css %}
+<style>
+    /* Profile Container */
+    .profile-container {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 20px;
+    }
+
+    /* Profile Header Card */
+    .profile-header {
+        background: white;
+        border-radius: 20px;
+        padding: 40px;
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        margin-bottom: 40px;
+    }
+    .profile-avatar {
+        width: 120px; height: 120px;
+        background: #f0f2f5;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 3rem; color: #adb5bd;
+        overflow: hidden;
+    }
+    .profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-info h1 { margin: 0 0 10px 0; color: var(--dark); font-size: 2rem; }
+    .profile-info p { margin: 0; color: var(--gray); font-size: 1.1rem; }
+    .profile-badges { margin-top: 15px; display: flex; gap: 10px; }
+    .badge { 
+        padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;
+        display: flex; align-items: center; gap: 6px;
+    }
+    .badge-verified { background: #e6fffa; color: #00b894; }
+
+    /* Tabs Navigation */
+    .profile-tabs {
+        display: flex; gap: 20px; border-bottom: 1px solid #eee; margin-bottom: 30px;
+    }
+    .tab-btn {
+        padding: 15px 20px;
+        background: none; border: none;
+        font-size: 1.1rem; color: var(--gray); font-weight: 600;
+        cursor: pointer; position: relative;
+    }
+    .tab-btn.active { color: var(--primary); }
+    .tab-btn.active::after {
+        content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background: var(--primary); border-radius: 3px 3px 0 0;
+    }
+
+    /* Grid Layouts */
+    .rooms-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px;
+    }
+
+    /* Room Card Styles */
+    .room-card {
+        background: white; border-radius: 16px; overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.3s;
+        border: 1px solid #eee;
+        position: relative;
+    }
+    .room-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
     
-    <!-- Profile Header -->
-    <div style="display: flex; gap: 30px; align-items: flex-start; margin-bottom: 40px;">
-        <div style="flex-shrink: 0;">
-            {% if user.profile_image_url %}
-            <img src="{{ user.profile_image_url }}" alt="Profile" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; box-shadow: var(--shadow);">
+    .room-img-wrapper { position: relative; height: 200px; }
+    .room-img { width: 100%; height: 100%; object-fit: cover; }
+    .room-status {
+        position: absolute; top: 15px; left: 15px;
+        padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: 0.8rem;
+        backdrop-filter: blur(4px);
+    }
+    .status-active { background: rgba(0, 184, 148, 0.9); color: white; }
+    .status-booked { background: rgba(255, 56, 92, 0.9); color: white; } /* Red for booked */
+    
+    .room-details { padding: 20px; }
+    .room-price { font-size: 1.25rem; font-weight: 800; color: var(--dark); margin-bottom: 5px; }
+    .room-title { font-size: 1rem; font-weight: 600; color: #444; margin-bottom: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .room-meta { display: flex; gap: 15px; color: #888; font-size: 0.9rem; margin-bottom: 15px; }
+    
+    .room-actions { 
+        display: flex; gap: 10px; padding-top: 15px; border-top: 1px solid #eee; 
+    }
+    .action-btn-sm {
+        flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #ddd;
+        background: white; color: var(--dark); font-size: 0.9rem; font-weight: 600;
+        cursor: pointer; text-align: center; text-decoration: none; transition: all 0.2s;
+    }
+    .action-btn-sm:hover { background: #f9f9f9; border-color: #ccc; }
+    .btn-danger { color: #ff385c; border-color: #ffe0e6; }
+    .btn-danger:hover { background: #fff0f3; border-color: #ff385c; }
+    .btn-disabled { opacity: 0.5; cursor: not-allowed; background: #eee; color: #999; } /* Disabled style */
+
+    /* Empty State */
+    .empty-state {
+        text-align: center; padding: 60px 20px; background: #f8f9fa; border-radius: 20px; color: #888;
+    }
+    .empty-icon { font-size: 3rem; margin-bottom: 20px; color: #ddd; }
+
+    /* Renter Booking Section Styles */
+    .booking-card-detail {
+        background: #fff; padding: 20px; border-radius: 12px; border: 1px solid #eee; margin-top: 15px;
+        background: #fdfdfd;
+    }
+    .booking-info-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.9rem; }
+    .booking-label { color: #666; }
+    .booking-value { font-weight: 600; color: #333; }
+    .pay-remainder-btn {
+        display: block; width: 100%; padding: 10px; margin-top: 15px;
+        background: var(--primary); color: white; text-align: center; border-radius: 8px;
+        text-decoration: none; font-weight: 600; font-size: 0.9rem;
+    }
+    .pay-remainder-btn:hover { background: #e61e4d; }
+    
+    /* Host View of Renter Styles */
+    .renter-info-box {
+        background: #fff5f7; border: 1px solid #ffe0e6; padding: 15px; border-radius: 10px; margin-bottom: 15px;
+    }
+    .renter-name { font-weight: 700; color: var(--dark); display: block; margin-bottom: 5px; }
+    .renter-contact { font-size: 0.85rem; color: #555; display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    
+    <!-- Header -->
+    <div class="profile-header">
+        <div class="profile-avatar">
+            {% if session.get('user_pic') %}
+                <img src="{{ session.get('user_pic') }}" alt="Profile" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <i class="fas fa-user" style="display:none;"></i>
+            {% elif user and user.profile_pic %}
+                <img src="{{ user.profile_pic }}" alt="Profile" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                <i class="fas fa-user" style="display:none;"></i>
             {% else %}
-            <div style="width: 150px; height: 150px; background: #ddd; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 60px; color: var(--gray);">
                 <i class="fas fa-user"></i>
-            </div>
             {% endif %}
         </div>
-        <div style="flex-grow: 1;">
-            <h1>{{ user.full_name }}</h1>
-            <p style="color: var(--gray); margin-top: 5px;">Member since {{ user.created_at[:4] }}</p>
-            <p style="margin-top: 15px;"><strong>Email:</strong> {{ user.email }}</p>
+        <div class="profile-info">
+            <h1>{{ user.name if user.name else session.get('user_name', 'User') }}</h1>
+            <p>{{ user.email if user.email else session.get('user_email', '') }}</p>
+            <div class="profile-badges">
+                <span class="badge badge-verified"><i class="fas fa-shield-alt"></i> Identity Verified</span>
+                <span class="badge" style="background:#eee; color:#666;"><i class="far fa-calendar-alt"></i> Joined {{ user.created_at if user.created_at else 'Recently' }}</span>
+            </div>
+        </div>
+        <div style="margin-left: auto;">
+             <a href="/logout" class="action-btn-sm btn-danger" style="padding: 12px 24px;">Log Out</a>
         </div>
     </div>
 
-    <hr style="border: 0; border-top: 1px solid #ddd; margin-bottom: 30px;">
+    <!-- Navigation -->
+    <div class="profile-tabs">
+        <button class="tab-btn active" onclick="switchTab('my-rooms')">My Listings</button>
+        <button class="tab-btn" onclick="switchTab('my-stays')">Current Stays & Bookings</button>
+        <button class="tab-btn" onclick="switchTab('wishlist')">Wishlist</button>
+    </div>
 
-    <!-- User Buildings -->
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h3>My Buildings</h3>
-        <a href="/upload" class="btn-primary" style="padding: 8px 16px; font-size: 14px;"><i class="fas fa-plus"></i> List New Building</a>
-    </div>
-    
-    {% if buildings %}
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; margin-top: 20px;">
-        {% for building in buildings %}
-        <div style="border: 1px solid #eee; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;">
-            <div style="height: 150px; overflow: hidden;">
-                <img src="{{ building.image_url }}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/400'">
+    <!-- 1. MY LISTINGS (HOST VIEW) -->
+    <div id="my-rooms" class="tab-content">
+        {% if my_rooms and my_rooms|length > 0 %}
+        <div class="rooms-grid">
+            {% for room in my_rooms %}
+            <div class="room-card">
+                <div class="room-img-wrapper">
+                    <img src="{{ room.image_url }}" class="room-img" onerror="this.src='https://via.placeholder.com/400x300'">
+                    {% if room.status == 'booked' %}
+                        <span class="room-status status-booked">Booked</span>
+                    {% else %}
+                        <span class="room-status status-active">Active</span>
+                    {% endif %}
+                </div>
+                
+                <div class="room-details">
+                    <div class="room-price">₹{{ room.price_per_month }}<span style="font-size:0.9rem; font-weight:400; color:#888;"> / month</span></div>
+                    <div class="room-title">{{ room.title }}</div>
+                    <div class="room-meta">
+                        <span><i class="fas fa-bed"></i> {{ room.bedrooms }} Bed</span>
+                        <span><i class="fas fa-bath"></i> {{ room.bathrooms }} Bath</span>
+                    </div>
+
+                    {% if room.status == 'booked' %}
+                        <!-- Host View: Renter Info (If Booked) -->
+                        <div class="renter-info-box">
+                            <span style="font-size:0.8rem; text-transform:uppercase; color:#ff385c; font-weight:700; letter-spacing:0.5px;">Current Renter</span>
+                            <span class="renter-name">{{ room.renter_name }}</span>
+                            <div class="renter-contact"><i class="fas fa-envelope"></i> {{ room.renter_email }}</div>
+                            <div class="renter-contact"><i class="fas fa-phone"></i> {{ room.renter_phone }}</div>
+                            <div style="margin-top:8px; font-size:0.85rem; color:#666;">
+                                <strong>Booking Type:</strong> {{ room.booking_type|title }}
+                            </div>
+                        </div>
+                        
+                        <!-- Disabled Actions for Booked Rooms -->
+                        <div class="room-actions">
+                            <span class="action-btn-sm btn-disabled" title="Cannot edit booked property">Edit</span>
+                            <span class="action-btn-sm btn-disabled" title="Cannot remove booked property">Remove</span>
+                             <a href="/room/{{ room.id }}" class="action-btn-sm">View</a>
+                        </div>
+                    {% else %}
+                        <!-- Normal Actions for Active Rooms -->
+                        <div class="room-actions">
+                            <a href="/edit_room/{{ room.id }}" class="action-btn-sm"><i class="fas fa-edit"></i> Edit</a>
+                            <a href="/delete_room/{{ room.id }}" class="action-btn-sm btn-danger" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i> Remove</a>
+                            <a href="/room/{{ room.id }}" class="action-btn-sm">View</a>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
-            <div style="padding: 12px; flex-grow: 1;">
-                <h4 style="font-size: 14px; margin-bottom: 4px;">{{ building.title }}</h4>
-                <p style="font-size: 13px; color:var(--gray);">{{ building.city }}</p>
-            </div>
-            
-            <div style="padding: 12px; background:#f9f9f9; text-align:center;">
-                <a href="/building/{{ building.id }}" style="font-weight:600; color:var(--primary); text-decoration:none;">Manage Rooms</a>
-            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-home empty-icon"></i>
+                <h3>No listings yet</h3>
+                <p>Ready to earn? List your property today.</p>
+                <br>
+                <!-- Updated link to /upload based on available files, as add_room might be the specific template -->
+                <a href="/upload" class="action-btn-sm" style="background:var(--dark); color:white; padding:12px 24px; display:inline-block;">Create Listing</a>
+            </div>
+        {% endif %}
     </div>
-    {% else %}
-    <div style="text-align: center; padding: 40px; background: #f9f9f9; border-radius: 12px; margin-top: 20px;">
-        <i class="fas fa-building" style="font-size: 32px; color: #ddd; margin-bottom: 10px;"></i>
-        <p style="color: var(--gray);">You haven't posted any buildings yet.</p>
+
+    <!-- 2. CURRENT STAYS (RENTER VIEW) -->
+    <div id="my-stays" class="tab-content" style="display:none;">
+        {% if my_bookings and my_bookings|length > 0 %}
+        <div class="rooms-grid">
+            {% for booking in my_bookings %}
+            <div class="room-card">
+                <div class="room-img-wrapper">
+                    <img src="{{ booking.room_image }}" class="room-img" onerror="this.src='https://via.placeholder.com/400x300'">
+                    <span class="room-status status-booked">Current Stay</span>
+                </div>
+                
+                <div class="room-details">
+                    <div class="room-title" style="font-size:1.1rem; margin-bottom:5px;">{{ booking.room_title }}</div>
+                    <div style="color:#666; font-size:0.9rem; margin-bottom:15px;"><i class="fas fa-map-marker-alt"></i> {{ booking.room_address }}</div>
+                    
+                    <div class="booking-card-detail">
+                        <div class="booking-info-row">
+                            <span class="booking-label">Check-in Date</span>
+                            <span class="booking-value">{{ booking.start_date }}</span>
+                        </div>
+                         <div class="booking-info-row">
+                            <span class="booking-label">Duration So Far</span>
+                            <span class="booking-value">{{ booking.months_stayed }} Months</span>
+                        </div>
+                        <div class="booking-info-row">
+                            <span class="booking-label">Booking Type</span>
+                            <span class="booking-value" style="text-transform: capitalize;">{{ booking.type }}</span>
+                        </div>
+                        <div class="booking-info-row" style="border-top:1px dashed #ddd; padding-top:8px; margin-top:8px;">
+                            <span class="booking-label">Next Rent Due</span>
+                            <span class="booking-value" style="color:var(--primary);">₹{{ booking.next_rent_amount }}</span>
+                        </div>
+                        <div class="booking-info-row">
+                            <span class="booking-label">Due Date</span>
+                            <span class="booking-value">{{ booking.next_due_date }}</span>
+                        </div>
+
+                        <!-- Pay Remaining Rent Action (If Locked only) -->
+                        {% if booking.type == 'lock' %}
+                            <a href="/pay_remaining/{{ booking.id }}" class="pay-remainder-btn">
+                                Pay Remaining Rent (Convert to Rent)
+                            </a>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="room-actions">
+                         <a href="/room/{{ booking.room_id }}" class="action-btn-sm">View Property</a>
+                         <a href="mailto:{{ booking.host_email }}" class="action-btn-sm">Contact Host</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-suitcase empty-icon"></i>
+                <h3>No active bookings</h3>
+                <p>You haven't rented or locked any rooms yet.</p>
+                <br>
+                <a href="/" class="action-btn-sm" style="background:var(--primary); color:white; padding:12px 24px; display:inline-block;">Explore Rooms</a>
+            </div>
+        {% endif %}
     </div>
-    {% endif %}
+
+    <!-- 3. WISHLIST -->
+    <div id="wishlist" class="tab-content" style="display:none;">
+        {% if wishlist_items and wishlist_items|length > 0 %}
+        <div class="rooms-grid">
+            {% for room in wishlist_items %}
+            <div class="room-card">
+                <div class="room-img-wrapper">
+                    <img src="{{ room.image_url }}" class="room-img" onerror="this.src='https://via.placeholder.com/400x300'">
+                </div>
+                <div class="room-details">
+                    <div class="room-price">₹{{ room.price_per_month }}</div>
+                    <div class="room-title">{{ room.title }}</div>
+                    <div class="room-actions">
+                        <a href="/room/{{ room.id }}" class="action-btn-sm">View</a>
+                        <a href="/remove_wishlist/{{ room.id }}" class="action-btn-sm btn-danger">Remove</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="far fa-heart empty-icon"></i>
+                <h3>Your wishlist is empty</h3>
+                <p>Save rooms you like to view them later.</p>
+            </div>
+        {% endif %}
+    </div>
 
 </div>
+
+<script>
+    function switchTab(tabId) {
+        // Hide all contents
+        document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+        // Deactivate all buttons
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        
+        // Show selected
+        document.getElementById(tabId).style.display = 'block';
+        // Activate button (find button with onclick matching tabId)
+        event.currentTarget.classList.add('active');
+    }
+</script>
 {% endblock %}
