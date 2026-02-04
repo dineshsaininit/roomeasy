@@ -286,8 +286,8 @@
     .text-content { font-size: 1.1rem; line-height: 1.8; color: #555; margin-bottom: 40px; }
     
     .amenities-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-    .amenity-item { display: flex; align-items: center; gap: 10px; font-size: 1.1rem; color: #444; }
-    .amenity-item i { color: var(--primary); width: 24px; }
+    .amenity-item { display: flex; align-items: center; gap: 10px; font-size: 1.1rem; color: #d92863; }
+    .amenity-item i { color: rgb(195, 62, 102); width: 24px; }
 
     .host-card {
         background: #fff; padding: 30px; border-radius: 20px;
@@ -397,7 +397,7 @@
                             <div class="option-item" onclick="selectOption(this, 'visit', 5)">
                                 <div class="option-info">
                                     <span class="option-label">Visit</span>
-                                    <span class="option-rate">Pay 5%</span>
+                                    <span class="option-rate">Pay 2%</span>
                                 </div>
                                 <div class="option-check"></div>
                             </div>
@@ -420,7 +420,7 @@
                                     <span id="summary-base">₹0</span>
                                 </div>
                                 <div class="flex-between">
-                                    <span>Commission (5%)</span>
+                                    <span>Platform Fee</span>
                                     <span id="summary-commission">₹0</span>
                                 </div>
                                 <div class="flex-between total-row">
@@ -601,7 +601,7 @@
 
         // 3. Logic: Calculate Amounts (Including 5% Commission)
         const base = rentPerMonth * (percent / 100);
-        const commission = base * 0.05; // 5% Commission
+        const commission = base * 0.02; // 5% Commission
         const total = base + commission;
 
         // 4. Update UI Text
@@ -644,7 +644,7 @@
 
         // Razorpay Options
         var options = {
-            "key": "YOUR_RAZORPAY_KEY_ID", // Enter your Key ID here
+            "key": "rzp_test_S60ElKH9pAn1Tu", // Enter your Key ID here
             "amount": Math.round(amount * 100), // Amount in currency subunits (paise)
             "currency": "INR",
             "name": "RoomEasy",

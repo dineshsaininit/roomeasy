@@ -59,6 +59,7 @@
         flex-direction: column;
         min-height: 100vh;
     }
+    body.mobile-nav-open { overflow: hidden; }
 
     /* --- Header & Navigation --- */
     header {
@@ -176,6 +177,27 @@
 
     /* Right Navigation (User Menu) */
     .nav-links { display: flex; align-items: center; gap: 24px; }
+    .mobile-menu-toggle {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 1px solid var(--border-color);
+        background: var(--bg-card);
+        cursor: pointer;
+        color: var(--text-main);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+        transition: background 0.2s ease, box-shadow 0.2s ease;
+    }
+    .mobile-menu-toggle:hover {
+        background: var(--light-gray);
+        box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+    }
+    .mobile-menu-toggle i.fa-xmark { display: none; }
+    .mobile-menu-toggle.open i.fa-bars { display: none; }
+    .mobile-menu-toggle.open i.fa-xmark { display: inline; }
     
     /* Standard Nav Links (Home, Login, Signup) */
     .nav-links a.nav-link-item { 
@@ -231,7 +253,7 @@
         height: 30px;
         border-radius: 50%;
         object-fit: cover;
-        background: #gray;
+        background: var(--light-gray);
         color: #717171;
         display: flex;
         align-items: center;
@@ -491,9 +513,17 @@
         font-weight: 800;
         color: #fff;
         margin-bottom: 10px;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
     }
     .brand-col .footer-logo-text span { color: var(--primary); }
+    .brand-col .footer-logo-text img {
+        width: 34px;
+        height: 34px;
+        object-fit: contain;
+        display: inline-block;
+    }
     
     .brand-col p {
         font-size: 14px;
@@ -564,9 +594,37 @@
     @keyframes spin { 100% { transform: rotate(360deg); } }
 
     /* Mobile Responsive */
-    @media (max-width: 768px) {
+    @media (max-width: 900px) {
+        header { flex-wrap: wrap; gap: 12px; position: sticky; }
+        .logo img { height: 6rem; }
         .search-bar { display: none; } 
         .logo span { display: none; }
+        .mobile-menu-toggle { display: inline-flex; }
+        .nav-links {
+            position: absolute;
+            top: 80px;
+            right: 16px;
+            left: 16px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 16px;
+            display: none;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+            z-index: 200;
+        }
+        .nav-links.open { display: flex; }
+        .nav-links a.nav-link-item,
+        .nav-links .btn-primary {
+            width: 100%;
+            justify-content: flex-start;
+        }
+        .user-menu-container { width: 100%; }
+        .user-menu-btn { width: 100%; justify-content: space-between; }
+        .user-dropdown-menu { position: static; box-shadow: none; border: 1px solid var(--border-color); width: 100%; margin-top: 8px; }
         .footer-content { grid-template-columns: 1fr; gap: 30px; }
         .footer-bottom { flex-direction: column; gap: 15px; text-align: center; }
         .brand-col p { max-width: 100%; }
@@ -623,6 +681,51 @@
             }
         }
     }
+
+    // 3. Mobile navigation toggling
+    window.toggleMobileMenu = function() {
+        const nav = document.getElementById('navLinks');
+        const toggle = document.getElementById('mobileMenuToggle');
+        if (!nav || !toggle) return;
+        const isOpen = nav.classList.toggle('open');
+        toggle.classList.toggle('open', isOpen);
+        document.body.classList.toggle('mobile-nav-open', isOpen);
+    }
+
+    window.closeMobileMenu = function() {
+        const nav = document.getElementById('navLinks');
+        const toggle = document.getElementById('mobileMenuToggle');
+        if (!nav || !toggle) return;
+        nav.classList.remove('open');
+        toggle.classList.remove('open');
+        document.body.classList.remove('mobile-nav-open');
+    }
+
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 900) {
+            window.closeMobileMenu();
+        }
+    });
+
+    window.addEventListener('click', (event) => {
+        const nav = document.getElementById('navLinks');
+        const toggle = document.getElementById('mobileMenuToggle');
+        if (!nav || !toggle) return;
+        const clickedInsideNav = nav.contains(event.target);
+        const clickedToggle = toggle.contains(event.target);
+        if (nav.classList.contains('open') && !clickedInsideNav && !clickedToggle) {
+            window.closeMobileMenu();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const navLinks = document.querySelectorAll('#navLinks a, #navLinks button');
+        navLinks.forEach(link => link.addEventListener('click', () => {
+            if (window.innerWidth <= 900) {
+                window.closeMobileMenu();
+            }
+        }));
+    });
   </script>
 
   {% block extra_css %}{% endblock %}
@@ -651,8 +754,14 @@
         <div id="suggestionsBox" class="suggestions-box"></div>
     </div>
 
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle navigation" onclick="toggleMobileMenu()">
+        <i class="fas fa-bars"></i>
+        <i class="fas fa-xmark"></i>
+    </button>
+
     <!-- Navigation -->
-    <div class="nav-links">
+    <div class="nav-links" id="navLinks">
       <!-- Theme Toggle Button -->
       <button onclick="window.toggleTheme()" class="theme-toggle-btn" title="Toggle Dark/Light Mode">
           <!-- Set initial icon based on script below -->
@@ -727,12 +836,15 @@
     <div class="footer-content">
         <!-- 1. Brand & Description -->
         <div class="footer-col brand-col">
-            <div class="footer-logo-text">Room<span>Easy</span></div>
+            <div class="footer-logo-text">
+                <img src="/static/images/newlogoroomeasy.png" alt="RoomEasy Logo">
+                Room<span>Easy</span>
+            </div>
             <p>Find your perfect space without the hassle. Secure, verified, and easy room rentals designed for modern living.</p>
             
             <div class="social-links">
-                <a href="#" class="social-btn"><i class="fab fa-instagram"></i></a>
-                <a href="#" class="social-btn"><i class="fab fa-twitter"></i></a>
+                <a href="https://www.instagram.com/room_.ez/" class="social-btn"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-btn"><i class="fa-brands fa-linkedin"></i></a>
                 <a href="#" class="social-btn"><i class="fab fa-facebook-f"></i></a>
             </div>
         </div>
