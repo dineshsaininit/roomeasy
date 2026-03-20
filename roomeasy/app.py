@@ -19,12 +19,39 @@ if not url or not key:
 
 supabase: Client = create_client(url, key)
 
-# --- Authentication Decorator ---
+# --- Authentication Decorators ---
+
 def login_required(f):
     def wrap(*args, **kwargs):
         if 'user' not in session:
             flash("You need to login first!", "error")
             return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    wrap.__name__ = f.__name__
+    return wrap
+
+def verified_required(f):
+    """Requires the user to be logged in AND verified by admin."""
+    def wrap(*args, **kwargs):
+        if 'user' not in session:
+            flash("You need to login first!", "error")
+            return redirect(url_for('login'))
+        if not session.get('is_verified'):
+            flash("You need to verify your identity before performing this action.", "error")
+            return redirect(url_for('verification_pending'))
+        return f(*args, **kwargs)
+    wrap.__name__ = f.__name__
+    return wrap
+
+def admin_required(f):
+    """Requires the user to be logged in AND have admin role."""
+    def wrap(*args, **kwargs):
+        if 'user' not in session:
+            flash("Admin login required.", "error")
+            return redirect(url_for('login'))
+        if session.get('role') != 'admin':
+            flash("Access denied. Admins only.", "error")
+            return redirect(url_for('index'))
         return f(*args, **kwargs)
     wrap.__name__ = f.__name__
     return wrap
@@ -83,7 +110,7 @@ def building_details(building_id):
         return redirect(url_for('index'))
 
 @app.route('/upload', methods=['GET', 'POST'])
-@login_required
+@verified_required
 def upload():
     if request.method == 'POST':
         title = request.form.get('title')
@@ -118,7 +145,7 @@ def upload():
 
 # --- Edit Building Route ---
 @app.route('/edit_building/<int:building_id>', methods=['GET', 'POST'])
-@login_required
+@verified_required
 def edit_building(building_id):
     try:
         response = supabase.table('buildings').select("*").eq('id', building_id).single().execute()
@@ -160,7 +187,7 @@ def edit_building(building_id):
     return render_template('edit_building.html', building=building)
 
 @app.route('/add_room/<int:building_id>', methods=['GET', 'POST'])
-@login_required
+@verified_required
 def add_room(building_id):
     try:
         b_res = supabase.table('buildings').select("*").eq('id', building_id).single().execute()
@@ -209,7 +236,7 @@ def add_room(building_id):
 
 # --- Edit Room Route ---
 @app.route('/edit_room/<int:room_id>', methods=['GET', 'POST'])
-@login_required
+@verified_required
 def edit_room(room_id):
     try:
         response = supabase.table('rooms').select("*").eq('id', room_id).single().execute()
@@ -339,7 +366,15 @@ def signup():
             if existing_user.data:
                 flash("Email already registered. Please login.", "error")
                 return redirect(url_for('login'))
-            new_user_data = { "full_name": full_name, "email": email, "password": password, "role": "user", "profile_image_url": profile_image if profile_image else "" }
+            new_user_data = {
+                "full_name": full_name,
+                "email": email,
+                "password": password,
+                "role": "user",
+                "is_verified": False,
+                "verification_status": "none",
+                "profile_image_url": profile_image if profile_image else ""
+            }
             supabase.table('user_profiles').insert(new_user_data).execute()
             flash("Signup successful! You can now login.", "success")
             return redirect(url_for('login'))
@@ -359,8 +394,9 @@ def login():
                 session['user'] = user['id']
                 session['name'] = user['full_name']
                 session['role'] = user['role']
-                # Correctly mapping profile_image_url to session
                 session['profile_image'] = user.get('profile_image_url')
+                session['is_verified'] = user.get('is_verified', False)
+                session['verification_status'] = user.get('verification_status', 'none')
                 flash(f"Welcome back, {user['full_name']}!", "success")
                 return redirect(url_for('index'))
             else:
@@ -380,38 +416,29 @@ def logout():
 def profile():
     user_id = session['user']
     try:
-        # 1. Fetch User Profile
         user_response = supabase.table('user_profiles').select("*").eq('id', user_id).single().execute()
         user = user_response.data
         
-        # 2. Fetch Listings (Rooms owned by user)
-        # We need to fetch 'rooms', not 'buildings', because profile.html iterates 'my_rooms'
         rooms_res = supabase.table('rooms').select("*").eq('owner_id', user_id).order('created_at', desc=True).execute()
         my_rooms = rooms_res.data
         
-        # Enrich booked rooms with renter info (Simulated Join)
         if my_rooms:
             for room in my_rooms:
                 if room['status'] == 'booked':
-                    # Find the active booking for this room
                     b_res = supabase.table('bookings').select("*").eq('room_id', room['id']).order('created_at', desc=True).limit(1).execute()
                     if b_res.data:
                         booking = b_res.data[0]
-                        # Fetch renter profile
                         renter_res = supabase.table('user_profiles').select("*").eq('id', booking['user_id']).single().execute()
                         if renter_res.data:
                             renter = renter_res.data
                             room['renter_name'] = renter.get('full_name', 'Unknown')
                             room['renter_email'] = renter.get('email', 'Unknown')
-                            room['renter_phone'] = "Not Available" # Phone not in DB currently
+                            room['renter_phone'] = "Not Available"
                             room['booking_type'] = booking.get('booking_type', 'standard')
 
-        # 3. Fetch Bookings (Where user is the renter)
-        # We need room details for these bookings
         bookings_res = supabase.table('bookings').select("*").eq('user_id', user_id).order('created_at', desc=True).execute()
         my_bookings = bookings_res.data
         
-        # Enrich booking objects with room details
         if my_bookings:
             room_ids = [b['room_id'] for b in my_bookings]
             if room_ids:
@@ -426,15 +453,12 @@ def profile():
                         b['room_address'] = r['address']
                         b['next_rent_amount'] = r['price_per_month']
                         b['remaining_amount'] = r['price_per_month'] - b.get('amount_paid', 0)
-                        b['host_email'] = "Contact Support" # Placeholder unless we fetch host profile too
-                        
-                        # Mock data for date logic
+                        b['host_email'] = "Contact Support"
                         b['start_date'] = b['created_at'][:10] 
                         b['months_stayed'] = 1 
                         b['next_due_date'] = "5th of next month"
                         b['type'] = b['booking_type']
 
-        # 4. Fetch Wishlist Items
         wishlist_items = []
         w_res = supabase.table('wishlist').select('room_id').eq('user_id', user_id).execute()
         if w_res.data:
@@ -443,19 +467,277 @@ def profile():
                 w_rooms_res = supabase.table('rooms').select("*").in_('id', w_ids).execute()
                 wishlist_items = w_rooms_res.data
 
+        # Fetch latest verification request if exists
+        verification_req = None
+        try:
+            v_res = supabase.table('verification_requests').select("*").eq('user_id', user_id).order('created_at', desc=True).limit(1).execute()
+            if v_res.data:
+                verification_req = v_res.data[0]
+        except:
+            pass
+
         return render_template('profile.html', 
                                user=user, 
                                my_rooms=my_rooms, 
                                my_bookings=my_bookings, 
-                               wishlist_items=wishlist_items)
+                               wishlist_items=wishlist_items,
+                               verification_req=verification_req)
                                
     except Exception as e:
         print(f"Profile error: {e}")
         flash(f"Error fetching profile: {e}", "error")
         return redirect(url_for('index'))
 
-@app.route('/book/<int:room_id>', methods=['POST'])
+
+# --- Verification Routes ---
+
+@app.route('/request-verification', methods=['GET', 'POST'])
 @login_required
+def request_verification():
+    user_id = session['user']
+    
+    # If already verified, go home
+    if session.get('is_verified'):
+        flash("Your account is already verified!", "success")
+        return redirect(url_for('index'))
+    
+    # Check if there's already a pending request
+    try:
+        existing = supabase.table('verification_requests').select("*").eq('user_id', user_id).eq('status', 'pending').execute()
+        if existing.data:
+            flash("You already have a pending verification request.", "info")
+            return redirect(url_for('verification_pending'))
+    except:
+        pass
+
+    if request.method == 'POST':
+        full_name = request.form.get('full_name')
+        address = request.form.get('address')
+        aadhar_number = request.form.get('aadhar_number')
+        aadhar_image_url = request.form.get('aadhar_image_url')
+        pan_number = request.form.get('pan_number')
+        pan_image_url = request.form.get('pan_image_url')
+        selfie_url = request.form.get('selfie_url')
+        property_proof_url = request.form.get('property_proof_url')
+        additional_notes = request.form.get('additional_notes', '')
+
+        # Basic validation
+        if not all([full_name, address, aadhar_number, aadhar_image_url, pan_number, selfie_url]):
+            flash("Please fill in all required fields.", "error")
+            return render_template('verification_request.html')
+
+        try:
+            # Insert verification request
+            v_data = {
+                "user_id": user_id,
+                "full_name": full_name,
+                "address": address,
+                "aadhar_number": aadhar_number,
+                "aadhar_image_url": aadhar_image_url,
+                "pan_number": pan_number,
+                "pan_image_url": pan_image_url,
+                "selfie_url": selfie_url,
+                "property_proof_url": property_proof_url,
+                "additional_notes": additional_notes,
+                "status": "pending"
+            }
+            supabase.table('verification_requests').insert(v_data).execute()
+            
+            # Update user's verification_status
+            supabase.table('user_profiles').update({
+                "verification_status": "pending"
+            }).eq('id', user_id).execute()
+            
+            # Update session
+            session['verification_status'] = 'pending'
+            
+            flash("Verification request submitted successfully! We'll review your documents shortly.", "success")
+            return redirect(url_for('verification_pending'))
+        except Exception as e:
+            flash(f"Error submitting verification: {str(e)}", "error")
+
+    # Pre-fill form with existing profile data
+    try:
+        user_res = supabase.table('user_profiles').select("*").eq('id', user_id).single().execute()
+        user_data = user_res.data
+    except:
+        user_data = {}
+
+    return render_template('verification_request.html', user=user_data)
+
+
+@app.route('/verification-pending')
+@login_required
+def verification_pending():
+    user_id = session['user']
+    
+    # If already verified, redirect home
+    if session.get('is_verified'):
+        return redirect(url_for('index'))
+    
+    # Fetch latest verification request
+    verification_req = None
+    try:
+        v_res = supabase.table('verification_requests').select("*").eq('user_id', user_id).order('created_at', desc=True).limit(1).execute()
+        if v_res.data:
+            verification_req = v_res.data[0]
+    except:
+        pass
+    
+    # If no request submitted yet, redirect to form
+    status = session.get('verification_status', 'none')
+    if status == 'none' and not verification_req:
+        return redirect(url_for('request_verification'))
+    
+    return render_template('verification_pending.html', 
+                           verification_req=verification_req,
+                           status=status)
+
+
+# --- Admin Routes ---
+
+@app.route('/admin')
+@admin_required
+def admin_dashboard():
+    try:
+        users_res = supabase.table('user_profiles').select("*", count='exact').execute()
+        total_users = len(users_res.data) if users_res.data else 0
+        
+        pending_res = supabase.table('verification_requests').select("*").eq('status', 'pending').execute()
+        pending_count = len(pending_res.data) if pending_res.data else 0
+        
+        rooms_res = supabase.table('rooms').select("*", count='exact').execute()
+        total_rooms = len(rooms_res.data) if rooms_res.data else 0
+        
+        buildings_res = supabase.table('buildings').select("*", count='exact').execute()
+        total_buildings = len(buildings_res.data) if buildings_res.data else 0
+        
+        bookings_res = supabase.table('bookings').select("*", count='exact').execute()
+        total_bookings = len(bookings_res.data) if bookings_res.data else 0
+        
+        # Recent verification requests (last 5)
+        recent_verifications = supabase.table('verification_requests').select("*").order('created_at', desc=True).limit(5).execute()
+        
+    except Exception as e:
+        print(f"Admin dashboard error: {e}")
+        flash(f"Error loading dashboard: {e}", "error")
+        total_users = pending_count = total_rooms = total_buildings = total_bookings = 0
+        recent_verifications = type('obj', (object,), {'data': []})()
+    
+    return render_template('admin_dashboard.html',
+                           total_users=total_users,
+                           pending_count=pending_count,
+                           total_rooms=total_rooms,
+                           total_buildings=total_buildings,
+                           total_bookings=total_bookings,
+                           recent_verifications=recent_verifications.data)
+
+
+@app.route('/admin/verifications')
+@admin_required
+def admin_verifications():
+    status_filter = request.args.get('status', 'all')
+    try:
+        query = supabase.table('verification_requests').select("*").order('created_at', desc=True)
+        if status_filter != 'all':
+            query = query.eq('status', status_filter)
+        verifications_res = query.execute()
+        verifications = verifications_res.data
+        
+        # Enrich with user emails
+        if verifications:
+            user_ids = [v['user_id'] for v in verifications]
+            users_res = supabase.table('user_profiles').select("id, full_name, email").in_('id', user_ids).execute()
+            users_map = {u['id']: u for u in users_res.data}
+            for v in verifications:
+                u = users_map.get(v['user_id'], {})
+                v['user_email'] = u.get('email', 'N/A')
+                v['user_full_name'] = u.get('full_name', 'N/A')
+                
+    except Exception as e:
+        flash(f"Error loading verifications: {e}", "error")
+        verifications = []
+    
+    return render_template('admin_verifications.html', 
+                           verifications=verifications,
+                           status_filter=status_filter)
+
+
+@app.route('/admin/verify/<int:req_id>', methods=['POST'])
+@admin_required
+def admin_verify(req_id):
+    action = request.form.get('action')  # 'approve' or 'reject'
+    admin_note = request.form.get('admin_note', '')
+    
+    if action not in ['approve', 'reject']:
+        flash("Invalid action.", "error")
+        return redirect(url_for('admin_verifications'))
+    
+    try:
+        # Get the verification request to find user_id
+        v_res = supabase.table('verification_requests').select("*").eq('id', req_id).single().execute()
+        v_req = v_res.data
+        
+        if not v_req:
+            flash("Verification request not found.", "error")
+            return redirect(url_for('admin_verifications'))
+        
+        user_id = v_req['user_id']
+        new_status = 'approved' if action == 'approve' else 'rejected'
+        
+        # Update verification request
+        from datetime import datetime
+        supabase.table('verification_requests').update({
+            "status": new_status,
+            "admin_note": admin_note,
+            "reviewed_at": datetime.utcnow().isoformat()
+        }).eq('id', req_id).execute()
+        
+        # Update user profile
+        user_update = {
+            "verification_status": new_status,
+            "is_verified": (action == 'approve')
+        }
+        supabase.table('user_profiles').update(user_update).eq('id', user_id).execute()
+        
+        flash(f"User has been {'approved' if action == 'approve' else 'rejected'} successfully.", "success")
+        
+    except Exception as e:
+        flash(f"Error processing verification: {e}", "error")
+    
+    return redirect(url_for('admin_verifications'))
+
+
+@app.route('/admin/users')
+@admin_required
+def admin_users():
+    try:
+        users_res = supabase.table('user_profiles').select("*").order('created_at', desc=True).execute()
+        users = users_res.data
+    except Exception as e:
+        flash(f"Error loading users: {e}", "error")
+        users = []
+    
+    return render_template('admin_users.html', users=users)
+
+
+@app.route('/admin/toggle-role/<user_id>', methods=['POST'])
+@admin_required
+def admin_toggle_role(user_id):
+    """Toggle a user between 'user' and 'admin' role."""
+    try:
+        u_res = supabase.table('user_profiles').select("role").eq('id', user_id).single().execute()
+        current_role = u_res.data.get('role', 'user')
+        new_role = 'admin' if current_role == 'user' else 'user'
+        supabase.table('user_profiles').update({"role": new_role}).eq('id', user_id).execute()
+        flash(f"User role changed to {new_role}.", "success")
+    except Exception as e:
+        flash(f"Error changing role: {e}", "error")
+    return redirect(url_for('admin_users'))
+
+
+@app.route('/book/<int:room_id>', methods=['POST'])
+@verified_required
 def book_room(room_id):
     # Check if user is the owner
     try:
@@ -482,7 +764,6 @@ def book_room(room_id):
 @login_required
 def pay_remainder(booking_id):
     try:
-        # Get booking to verify user and get room details
         b_res = supabase.table('bookings').select("*").eq('id', booking_id).single().execute()
         booking = b_res.data
         
@@ -494,12 +775,10 @@ def pay_remainder(booking_id):
             flash("Unauthorized request.", "error")
             return redirect(url_for('profile'))
             
-        # Get full price from room
         r_res = supabase.table('rooms').select("price_per_month").eq('id', booking['room_id']).single().execute()
         room_data = r_res.data
         full_price = room_data['price_per_month']
         
-        # Update booking to paid/full
         supabase.table('bookings').update({
             "amount_paid": full_price,
             "booking_type": "full"

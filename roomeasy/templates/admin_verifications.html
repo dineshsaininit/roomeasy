@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  * { font-family: 'Inter', sans-serif; }
+  .admin-layout { display: flex; min-height: calc(100vh - 80px); background: var(--bg-body); }
+  .admin-sidebar {
+    width: 260px; flex-shrink: 0;
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 28px 20px; display: flex; flex-direction: column;
+    position: sticky; top: 80px; height: calc(100vh - 80px); overflow-y: auto;
+  }
+  .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px; background: rgba(255,255,255,0.08); margin-bottom: 28px; }
+  .sidebar-logo .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #ff385c, #e61e4d); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; }
+  .sidebar-logo span { color: white; font-weight: 700; font-size: 16px; }
+  .sidebar-section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.4); padding: 0 16px; margin-bottom: 8px; }
+  .sidebar-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; color: rgba(255,255,255,0.72); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s; margin-bottom: 4px; }
+  .sidebar-link i { width: 18px; text-align: center; }
+  .sidebar-link:hover, .sidebar-link.active { background: rgba(255,255,255,0.12); color: white; }
+  .sidebar-link.active { background: rgba(255,56,92,0.25); color: #ff385c; }
+  .sidebar-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .admin-main { flex: 1; padding: 36px 40px; }
+  .page-header { margin-bottom: 28px; }
+  .page-header h1 { font-size: 1.8rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
+  .page-header p { color: var(--text-muted); font-size: 14px; }
+  .filter-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+  .filter-tab { padding: 8px 18px; border-radius: 20px; text-decoration: none; font-size: 13px; font-weight: 600; border: 1.5px solid var(--border-color); color: var(--text-muted); transition: all 0.2s; background: var(--bg-card); }
+  .filter-tab:hover { border-color: var(--primary); color: var(--primary); }
+  .filter-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
+  .verif-grid { display: flex; flex-direction: column; gap: 24px; }
+  .verif-card { background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color); overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
+  .verif-card-header { padding: 18px 24px; display: flex; align-items: center; gap: 16px; border-bottom: 1px solid var(--border-color); background: var(--light-gray); }
+  .user-avatar-lg { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); color: white; font-size: 18px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .user-info-header { flex: 1; }
+  .user-info-header h3 { margin: 0 0 3px; font-size: 15px; font-weight: 700; color: var(--text-main); }
+  .user-info-header p { margin: 0; font-size: 13px; color: var(--text-muted); }
+  .verif-meta { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+  .verif-date { font-size: 12px; color: var(--text-muted); }
+  .badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-pending { background: #fff8e1; color: #f59e0b; }
+  .badge-approved { background: #e8f5e9; color: #16a34a; }
+  .badge-rejected { background: #fce4ec; color: #dc2626; }
+  .verif-body { padding: 24px; }
+  .doc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .doc-item { border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden; }
+  .doc-item a { display: block; text-decoration: none; }
+  .doc-thumb { width: 100%; height: 100px; object-fit: cover; background: var(--light-gray); display: block; }
+  .doc-label { padding: 8px 10px; font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; background: var(--bg-card); }
+  .doc-label i { color: var(--primary); }
+  .info-rows { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+  .info-row { padding: 10px 14px; background: var(--light-gray); border-radius: 8px; }
+  .info-row .label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 3px; }
+  .info-row .value { font-size: 13px; font-weight: 600; color: var(--text-main); }
+  .notes-box { background: var(--light-gray); border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; font-size: 13px; color: var(--text-muted); }
+  .notes-box strong { color: var(--text-main); }
+  .action-form { background: var(--bg-card); border: 1.5px solid var(--border-color); border-radius: 12px; padding: 20px; }
+  .action-form h4 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 12px; }
+  .admin-note-input { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border-color); border-radius: 8px; font-size: 13px; color: var(--text-main); background: var(--bg-input); resize: vertical; min-height: 60px; margin: 0 0 12px; font-family: 'Inter', sans-serif; }
+  .admin-note-input:focus { outline: none; border-color: #667eea; }
+  .action-btns { display: flex; gap: 10px; }
+  .btn-approve { padding: 10px 24px; background: #10b981; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; font-family: 'Inter', sans-serif; }
+  .btn-approve:hover { background: #059669; }
+  .btn-reject { padding: 10px 24px; background: #ef4444; color: white; border: none; border-radius: 10px; font-weight: 700; font-size: 13px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; font-family: 'Inter', sans-serif; }
+  .btn-reject:hover { background: #dc2626; }
+  .verif-reviewed { padding: 14px 20px; border-radius: 10px; font-size: 13px; display: flex; align-items: center; gap: 8px; font-weight: 600; }
+  .verif-reviewed.approved { background: #e8f5e9; color: #16a34a; }
+  .verif-reviewed.rejected { background: #fce4ec; color: #dc2626; }
+  .empty-state { padding: 80px 40px; text-align: center; color: var(--text-muted); }
+  .empty-state i { font-size: 56px; display: block; margin-bottom: 16px; opacity: 0.25; }
+  @media(max-width: 900px) { .admin-sidebar { display: none; } .admin-main { padding: 20px; } .info-rows { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon"><i class="fas fa-crown"></i></div>
+      <span>Admin Panel</span>
+    </div>
+    <div class="sidebar-section-label">Overview</div>
+    <a href="/admin" class="sidebar-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <div class="sidebar-section-label" style="margin-top:16px;">Management</div>
+    <a href="/admin/verifications" class="sidebar-link active"><i class="fas fa-shield-alt"></i> Verifications</a>
+    <a href="/admin/users" class="sidebar-link"><i class="fas fa-users"></i> All Users</a>
+    <div class="sidebar-footer">
+      <a href="/" class="sidebar-link"><i class="fas fa-home"></i> Back to Site</a>
+      <a href="/logout" class="sidebar-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="page-header">
+      <h1>🛡️ Verification Requests</h1>
+      <p>Review and approve or reject user KYC submissions.</p>
+    </div>
+    <div class="filter-tabs">
+      <a href="/admin/verifications?status=all" class="filter-tab {% if status_filter == 'all' %}active{% endif %}">All</a>
+      <a href="/admin/verifications?status=pending" class="filter-tab {% if status_filter == 'pending' %}active{% endif %}">Pending</a>
+      <a href="/admin/verifications?status=approved" class="filter-tab {% if status_filter == 'approved' %}active{% endif %}">Approved</a>
+      <a href="/admin/verifications?status=rejected" class="filter-tab {% if status_filter == 'rejected' %}active{% endif %}">Rejected</a>
+    </div>
+
+    <div class="verif-grid">
+      {% if verifications %}
+        {% for v in verifications %}
+        <div class="verif-card">
+          <div class="verif-card-header">
+            <div class="user-avatar-lg">{{ v.full_name[0]|upper if v.full_name else '?' }}</div>
+            <div class="user-info-header">
+              <h3>{{ v.full_name or 'N/A' }}</h3>
+              <p><i class="fas fa-envelope" style="margin-right:5px;"></i>{{ v.user_email or 'N/A' }}</p>
+            </div>
+            <div class="verif-meta">
+              <span class="verif-date">{{ v.created_at[:10] if v.created_at else '' }}</span>
+              <span class="badge badge-{{ v.status }}">{{ v.status|title }}</span>
+            </div>
+          </div>
+          <div class="verif-body">
+            <div class="info-rows">
+              <div class="info-row">
+                <div class="label">Aadhar Number</div>
+                <div class="value">{{ v.aadhar_number or 'Not provided' }}</div>
+              </div>
+              <div class="info-row">
+                <div class="label">PAN Number</div>
+                <div class="value">{{ v.pan_number or 'Not provided' }}</div>
+              </div>
+              <div class="info-row" style="grid-column:1 / -1;">
+                <div class="label">Address</div>
+                <div class="value">{{ v.address or 'Not provided' }}</div>
+              </div>
+            </div>
+            <div class="doc-grid">
+              {% if v.aadhar_image_url %}
+              <div class="doc-item">
+                <a href="{{ v.aadhar_image_url }}" target="_blank">
+                  <img src="{{ v.aadhar_image_url }}" class="doc-thumb" alt="Aadhar" onerror="this.src=''; this.alt='Image unavailable';">
+                </a>
+                <div class="doc-label"><i class="fas fa-id-card"></i> Aadhar Card</div>
+              </div>
+              {% endif %}
+              {% if v.pan_image_url %}
+              <div class="doc-item">
+                <a href="{{ v.pan_image_url }}" target="_blank">
+                  <img src="{{ v.pan_image_url }}" class="doc-thumb" alt="PAN">
+                </a>
+                <div class="doc-label"><i class="fas fa-credit-card"></i> PAN Card</div>
+              </div>
+              {% endif %}
+              {% if v.selfie_url %}
+              <div class="doc-item">
+                <a href="{{ v.selfie_url }}" target="_blank">
+                  <img src="{{ v.selfie_url }}" class="doc-thumb" alt="Selfie">
+                </a>
+                <div class="doc-label"><i class="fas fa-camera"></i> Selfie</div>
+              </div>
+              {% endif %}
+              {% if v.property_proof_url %}
+              <div class="doc-item">
+                <a href="{{ v.property_proof_url }}" target="_blank">
+                  <img src="{{ v.property_proof_url }}" class="doc-thumb" alt="Property">
+                </a>
+                <div class="doc-label"><i class="fas fa-home"></i> Property Proof</div>
+              </div>
+              {% endif %}
+            </div>
+            {% if v.additional_notes %}
+            <div class="notes-box"><strong>User Notes:</strong> {{ v.additional_notes }}</div>
+            {% endif %}
+            {% if v.admin_note %}
+            <div class="notes-box" style="border-left: 3px solid var(--primary);"><strong>Admin Note:</strong> {{ v.admin_note }}</div>
+            {% endif %}
+            {% if v.status == 'pending' %}
+            <div class="action-form">
+              <h4><i class="fas fa-gavel" style="margin-right:6px;"></i>Admin Decision</h4>
+              <form method="POST" action="/admin/verify/{{ v.id }}" style="margin:0;">
+                <textarea name="admin_note" class="admin-note-input" placeholder="Optional note for the user (required for rejection)..."></textarea>
+                <input type="hidden" name="action" id="action-{{ v.id }}" value="">
+                <div class="action-btns">
+                  <button type="submit" class="btn-approve" onclick="document.getElementById('action-{{ v.id }}').value='approve'">
+                    <i class="fas fa-check"></i> Approve
+                  </button>
+                  <button type="submit" class="btn-reject" onclick="document.getElementById('action-{{ v.id }}').value='reject'">
+                    <i class="fas fa-times"></i> Reject
+                  </button>
+                </div>
+              </form>
+            </div>
+            {% else %}
+            <div class="verif-reviewed {{ v.status }}">
+              {% if v.status == 'approved' %}<i class="fas fa-check-circle"></i> Approved{% else %}<i class="fas fa-times-circle"></i> Rejected{% endif %}
+              {% if v.reviewed_at %} on {{ v.reviewed_at[:10] }}{% endif %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div class="empty-state">
+        <i class="fas fa-shield-alt"></i>
+        <p>No verification requests found for the selected filter.</p>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+{% endblock %}

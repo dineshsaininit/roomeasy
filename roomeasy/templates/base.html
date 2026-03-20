@@ -788,6 +788,13 @@
 
             <!-- Dropdown Items with Icons -->
             <div id="userDropdown" class="user-dropdown-menu">
+                {% if session.get('role') == 'admin' %}
+                <a href="/admin" class="dropdown-item bold" style="color: #667eea;">
+                    <i class="fas fa-crown" style="color:#667eea;"></i> Admin Panel
+                </a>
+                <div class="dropdown-divider"></div>
+                {% endif %}
+
                 <a href="/profile" class="dropdown-item bold">
                     <i class="fas fa-user-circle"></i> Profile
                 </a>
@@ -795,6 +802,18 @@
                     <i class="fas fa-heart"></i> Wishlist
                 </a>
                 <div class="dropdown-divider"></div>
+
+                {% if not session.get('is_verified') %}
+                <a href="/verification-pending" class="dropdown-item" style="color: #f59e0b;">
+                    <i class="fas fa-shield-alt" style="color:#f59e0b;"></i>
+                    {% if session.get('verification_status') == 'pending' %}
+                        Verification Pending
+                    {% else %}
+                        Verify Account
+                    {% endif %}
+                </a>
+                {% endif %}
+
                 <a href="/upload" class="dropdown-item">
                     <i class="fas fa-home"></i> Switch to Hosting
                 </a>

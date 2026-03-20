@@ -1,0 +1,282 @@
+{% extends 'base.html' %}
+
+{% block extra_css %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  .verify-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ff385c 100%);
+    padding: 40px 20px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .verify-container {
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  .verify-header {
+    text-align: center;
+    margin-bottom: 36px;
+    color: white;
+  }
+  .verify-header .shield-icon {
+    width: 80px; height: 80px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 36px;
+    border: 2px solid rgba(255,255,255,0.3);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.3); }
+    50% { box-shadow: 0 0 0 20px rgba(255,255,255,0); }
+  }
+  .verify-header h1 { font-size: 2.2rem; font-weight: 800; margin-bottom: 8px; }
+  .verify-header p { font-size: 1rem; opacity: 0.85; }
+
+  .verify-card {
+    background: rgba(255,255,255,0.97);
+    backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.5);
+  }
+
+  [data-theme="dark"] .verify-card {
+    background: rgba(30,30,30,0.97) !important;
+    border-color: rgba(255,255,255,0.1) !important;
+  }
+
+  .section-header {
+    display: flex; align-items: center; gap: 12px;
+    margin: 28px 0 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #f0f0f0;
+  }
+  [data-theme="dark"] .section-header { border-color: #333; }
+  .section-header .section-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 15px;
+  }
+  .section-header h3 { font-size: 1rem; font-weight: 700; color: var(--text-main); margin: 0; }
+
+  .form-group { margin-bottom: 18px; }
+  .form-group label {
+    display: block; font-size: 13px; font-weight: 600;
+    color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .form-group label .required { color: #ff385c; margin-left: 3px; }
+  .form-group input, .form-group textarea {
+    width: 100%; padding: 12px 16px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 14px; font-family: 'Inter', sans-serif;
+    color: var(--text-main);
+    background: var(--bg-input);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    margin: 0;
+  }
+  .form-group input:focus, .form-group textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+  }
+  .form-group textarea { resize: vertical; min-height: 80px; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(max-width: 600px) { .form-row { grid-template-columns: 1fr; } }
+
+  .url-hint {
+    font-size: 11px; color: var(--text-muted); margin-top: 4px;
+    display: flex; align-items: center; gap: 4px;
+  }
+
+  .info-box {
+    background: linear-gradient(135deg, #fff8e1, #fff3cd);
+    border: 1px solid #ffc107;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 24px;
+    font-size: 13px; color: #856404;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .info-box i { margin-top: 2px; flex-shrink: 0; }
+
+  .submit-area { margin-top: 32px; }
+  .submit-btn {
+    width: 100%; padding: 16px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white; border: none; border-radius: 14px;
+    font-size: 1rem; font-weight: 700; cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: all 0.3s;
+    box-shadow: 0 6px 20px rgba(102,126,234,0.35);
+    font-family: 'Inter', sans-serif;
+  }
+  .submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(102,126,234,0.45);
+  }
+  .submit-btn:active { transform: translateY(0); }
+
+  .back-link {
+    display: block; text-align: center; margin-top: 16px;
+    color: white; font-size: 14px; text-decoration: none; opacity: 0.85;
+  }
+  .back-link:hover { opacity: 1; text-decoration: underline; }
+
+  .steps-indicator {
+    display: flex; justify-content: center; gap: 8px; margin-bottom: 28px;
+  }
+  .step-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+  }
+  .step-dot.active { background: white; width: 24px; border-radius: 4px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="verify-page">
+  <div class="verify-container">
+    <div class="verify-header">
+      <div class="shield-icon">🛡️</div>
+      <h1>Identity Verification</h1>
+      <p>Complete KYC to unlock renting, listing, and booking on RoomEasy</p>
+    </div>
+
+    <div class="steps-indicator">
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+    </div>
+
+    <div class="verify-card">
+      <div class="info-box">
+        <i class="fas fa-info-circle"></i>
+        <div>
+          <strong>How to upload documents:</strong> Upload your images to any public image host
+          (e.g., <a href="https://imgbb.com" target="_blank" style="color:#856404;font-weight:600;">ImgBB</a>,
+          <a href="https://imgur.com" target="_blank" style="color:#856404;font-weight:600;">Imgur</a>,
+          or Google Drive with public sharing), then paste the direct image URL below.
+        </div>
+      </div>
+
+      <form method="POST" action="/request-verification">
+
+        <!-- Personal Info -->
+        <div class="section-header">
+          <div class="section-icon"><i class="fas fa-user"></i></div>
+          <h3>Personal Information</h3>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Full Name <span class="required">*</span></label>
+            <input type="text" name="full_name" placeholder="As per Aadhar card"
+                   value="{{ user.full_name if user else '' }}" required>
+          </div>
+          <div class="form-group">
+            <label>Complete Address <span class="required">*</span></label>
+            <input type="text" name="address" placeholder="House No, Street, City, State, PIN" required>
+          </div>
+        </div>
+
+        <!-- Aadhar Card -->
+        <div class="section-header">
+          <div class="section-icon"><i class="fas fa-id-card"></i></div>
+          <h3>Aadhar Card Details</h3>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Aadhar Number <span class="required">*</span></label>
+            <input type="text" name="aadhar_number" placeholder="XXXX XXXX XXXX"
+                   maxlength="14" pattern="[0-9 ]{12,14}" required>
+          </div>
+          <div class="form-group">
+            <label>Aadhar Card Image URL <span class="required">*</span></label>
+            <input type="url" name="aadhar_image_url" placeholder="https://i.ibb.co/your-aadhar.jpg" required>
+            <div class="url-hint"><i class="fas fa-link"></i> Direct link to both-sides image</div>
+          </div>
+        </div>
+
+        <!-- PAN Card -->
+        <div class="section-header">
+          <div class="section-icon"><i class="fas fa-credit-card"></i></div>
+          <h3>PAN Card Details</h3>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>PAN Number <span class="required">*</span></label>
+            <input type="text" name="pan_number" placeholder="ABCDE1234F"
+                   maxlength="10" style="text-transform:uppercase">
+          </div>
+          <div class="form-group">
+            <label>PAN Card Image URL</label>
+            <input type="url" name="pan_image_url" placeholder="https://i.ibb.co/your-pan.jpg">
+            <div class="url-hint"><i class="fas fa-link"></i> Optional but recommended</div>
+          </div>
+        </div>
+
+        <!-- Selfie Verification -->
+        <div class="section-header">
+          <div class="section-icon"><i class="fas fa-camera"></i></div>
+          <h3>Selfie Verification</h3>
+        </div>
+
+        <div class="form-group">
+          <label>Selfie Holding Your Aadhar Card <span class="required">*</span></label>
+          <input type="url" name="selfie_url" placeholder="https://i.ibb.co/your-selfie.jpg" required>
+          <div class="url-hint"><i class="fas fa-info-circle"></i> Take a clear photo of yourself holding your Aadhar card — both your face and card must be visible</div>
+        </div>
+
+        <!-- Property Proof -->
+        <div class="section-header">
+          <div class="section-icon"><i class="fas fa-home"></i></div>
+          <h3>Property Proof (For Hosts Only)</h3>
+        </div>
+
+        <div class="form-group">
+          <label>Property Ownership / Rental Agreement Image URL</label>
+          <input type="url" name="property_proof_url" placeholder="https://i.ibb.co/your-property-doc.jpg">
+          <div class="url-hint"><i class="fas fa-info-circle"></i> Required only if you plan to list properties. Can be deed, NOC, or rental agreement.</div>
+        </div>
+
+        <!-- Additional Notes -->
+        <div class="section-header">
+          <div class="section-icon"><i class="fas fa-comment-alt"></i></div>
+          <h3>Additional Notes</h3>
+        </div>
+
+        <div class="form-group">
+          <label>Anything you'd like to tell us?</label>
+          <textarea name="additional_notes" placeholder="Any special context about your documents or situation..."></textarea>
+        </div>
+
+        <div class="submit-area">
+          <button type="submit" class="submit-btn">
+            <i class="fas fa-paper-plane" style="margin-right:8px;"></i>
+            Submit Verification Documents
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <a href="/" class="back-link">
+      <i class="fas fa-arrow-left" style="margin-right:6px;"></i> Continue browsing without verification
+    </a>
+  </div>
+</div>
+{% endblock %}

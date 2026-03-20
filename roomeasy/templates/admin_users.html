@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% block extra_css %}
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  * { font-family: 'Inter', sans-serif; }
+  .admin-layout { display: flex; min-height: calc(100vh - 80px); background: var(--bg-body); }
+  .admin-sidebar {
+    width: 260px; flex-shrink: 0;
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 28px 20px; display: flex; flex-direction: column;
+    position: sticky; top: 80px; height: calc(100vh - 80px); overflow-y: auto;
+  }
+  .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px; background: rgba(255,255,255,0.08); margin-bottom: 28px; }
+  .sidebar-logo .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, #ff385c, #e61e4d); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; }
+  .sidebar-logo span { color: white; font-weight: 700; font-size: 16px; }
+  .sidebar-section-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.4); padding: 0 16px; margin-bottom: 8px; }
+  .sidebar-link { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; color: rgba(255,255,255,0.72); text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s; margin-bottom: 4px; }
+  .sidebar-link i { width: 18px; text-align: center; }
+  .sidebar-link:hover, .sidebar-link.active { background: rgba(255,255,255,0.12); color: white; }
+  .sidebar-link.active { background: rgba(255,56,92,0.25); color: #ff385c; }
+  .sidebar-footer { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .admin-main { flex: 1; padding: 36px 40px; }
+  .page-header { margin-bottom: 28px; }
+  .page-header h1 { font-size: 1.8rem; font-weight: 800; color: var(--text-main); margin-bottom: 4px; }
+  .page-header p { color: var(--text-muted); font-size: 14px; }
+  .search-bar-admin {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 20px;
+  }
+  .search-bar-admin input {
+    padding: 10px 16px; border: 1.5px solid var(--border-color);
+    border-radius: 10px; font-size: 14px; background: var(--bg-card);
+    color: var(--text-main); width: 300px; margin: 0;
+  }
+  .search-bar-admin input:focus { outline: none; border-color: #667eea; }
+  .users-table-wrap {
+    background: var(--bg-card); border-radius: 16px;
+    border: 1px solid var(--border-color);
+    overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .table-header {
+    padding: 18px 24px; border-bottom: 1px solid var(--border-color);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .table-header h3 { font-size: 16px; font-weight: 700; color: var(--text-main); margin: 0; }
+  .table-header span { font-size: 13px; color: var(--text-muted); }
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th {
+    padding: 12px 20px; text-align: left;
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.8px; color: var(--text-muted);
+    background: var(--light-gray); border-bottom: 1px solid var(--border-color);
+  }
+  .data-table td { padding: 14px 20px; border-bottom: 1px solid var(--border-color); font-size: 14px; color: var(--text-main); vertical-align: middle; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tbody tr:hover td { background: var(--light-gray); }
+  .user-cell { display: flex; align-items: center; gap: 12px; }
+  .u-avatar {
+    width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 14px; overflow: hidden;
+  }
+  .u-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .u-name { font-weight: 600; }
+  .u-email { font-size: 12px; color: var(--text-muted); }
+  .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-admin { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+  .badge-user { background: var(--light-gray); color: var(--text-muted); }
+  .badge-verified { background: #e8f5e9; color: #16a34a; }
+  .badge-pending { background: #fff8e1; color: #f59e0b; }
+  .badge-rejected { background: #fce4ec; color: #dc2626; }
+  .badge-none { background: var(--light-gray); color: var(--text-muted); }
+  .toggle-role-btn {
+    padding: 6px 14px; font-size: 12px; font-weight: 600;
+    border-radius: 8px; border: 1.5px solid var(--border-color);
+    background: var(--bg-card); color: var(--text-muted);
+    cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
+  }
+  .toggle-role-btn:hover { border-color: #667eea; color: #667eea; }
+  .empty-state { padding: 60px; text-align: center; color: var(--text-muted); }
+  @media(max-width: 900px) { .admin-sidebar { display: none; } .admin-main { padding: 20px; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-layout">
+  <aside class="admin-sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon"><i class="fas fa-crown"></i></div>
+      <span>Admin Panel</span>
+    </div>
+    <div class="sidebar-section-label">Overview</div>
+    <a href="/admin" class="sidebar-link"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+    <div class="sidebar-section-label" style="margin-top:16px;">Management</div>
+    <a href="/admin/verifications" class="sidebar-link"><i class="fas fa-shield-alt"></i> Verifications</a>
+    <a href="/admin/users" class="sidebar-link active"><i class="fas fa-users"></i> All Users</a>
+    <div class="sidebar-footer">
+      <a href="/" class="sidebar-link"><i class="fas fa-home"></i> Back to Site</a>
+      <a href="/logout" class="sidebar-link"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="page-header">
+      <h1>👥 All Users</h1>
+      <p>Manage user accounts, roles, and verification status.</p>
+    </div>
+
+    <div class="search-bar-admin">
+      <i class="fas fa-search" style="color:var(--text-muted);"></i>
+      <input type="text" id="userSearch" placeholder="Filter by name or email..." oninput="filterUsers()">
+    </div>
+
+    <div class="users-table-wrap">
+      <div class="table-header">
+        <h3>Registered Users</h3>
+        <span>{{ users|length }} total</span>
+      </div>
+      {% if users %}
+      <table class="data-table" id="usersTable">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Role</th>
+            <th>Verification</th>
+            <th>Joined</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr class="user-row">
+            <td>
+              <div class="user-cell">
+                <div class="u-avatar">
+                  {% if u.profile_image_url %}
+                    <img src="{{ u.profile_image_url }}" alt="">
+                  {% else %}
+                    {{ u.full_name[0]|upper if u.full_name else '?' }}
+                  {% endif %}
+                </div>
+                <div>
+                  <div class="u-name">{{ u.full_name or 'No Name' }}</div>
+                  <div class="u-email">{{ u.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              {% if u.role == 'admin' %}
+                <span class="badge badge-admin"><i class="fas fa-crown" style="margin-right:4px;"></i>Admin</span>
+              {% else %}
+                <span class="badge badge-user">User</span>
+              {% endif %}
+            </td>
+            <td>
+              {% set vstatus = u.verification_status or 'none' %}
+              {% if vstatus == 'approved' or u.is_verified %}
+                <span class="badge badge-verified"><i class="fas fa-check" style="margin-right:4px;"></i>Verified</span>
+              {% elif vstatus == 'pending' %}
+                <span class="badge badge-pending">Pending</span>
+              {% elif vstatus == 'rejected' %}
+                <span class="badge badge-rejected">Rejected</span>
+              {% else %}
+                <span class="badge badge-none">Not Applied</span>
+              {% endif %}
+            </td>
+            <td>{{ u.created_at[:10] if u.created_at else 'N/A' }}</td>
+            <td>
+              {% if u.id != session.get('user') %}
+              <form method="POST" action="/admin/toggle-role/{{ u.id }}" style="display:inline; margin:0;">
+                <button type="submit" class="toggle-role-btn"
+                        onclick="return confirm('Change role for {{ u.full_name }}?')">
+                  {% if u.role == 'admin' %}Make User{% else %}Make Admin{% endif %}
+                </button>
+              </form>
+              {% else %}
+              <span style="font-size:12px; color:var(--text-muted);">(You)</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">No users found.</div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+
+<script>
+function filterUsers() {
+  const q = document.getElementById('userSearch').value.toLowerCase();
+  document.querySelectorAll('.user-row').forEach(row => {
+    const text = row.textContent.toLowerCase();
+    row.style.display = text.includes(q) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}

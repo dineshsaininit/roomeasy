@@ -377,8 +377,39 @@
                             <h3>No Longer Available</h3>
                             <p>This room has been locked or rented.</p>
                         </div>
+
+                    {% elif not session.get('user') %}
+                        <!-- Not logged in -->
+                        <div class="booked-state" style="background:#fff8e1; border-color:#ffc107;">
+                            <i class="fas fa-lock" style="color:#f59e0b;"></i>
+                            <h3 style="color:#856404;">Login Required</h3>
+                            <p style="color:#856404;">Please log in to book this room.</p>
+                        </div>
+                        <a href="/login" class="action-btn" style="margin-top:10px; display:block; text-align:center; text-decoration:none;">
+                            Log In to Book
+                        </a>
+
+                    {% elif not session.get('is_verified') %}
+                        <!-- Logged in but not verified -->
+                        <div class="booked-state" style="background: linear-gradient(135deg,#fff3cd,#ffecb3); border: 2px solid #ffc107;">
+                            <i class="fas fa-shield-alt" style="color:#f59e0b; font-size:2rem;"></i>
+                            <h3 style="color:#856404;">Verification Required</h3>
+                            <p style="color:#92600a; font-size:0.85rem;">
+                                You need to verify your identity before booking a room. It only takes a few minutes.
+                            </p>
+                        </div>
+                        {% if session.get('verification_status') == 'pending' %}
+                        <a href="/verification-pending" class="action-btn" style="margin-top:10px; display:block; text-align:center; text-decoration:none; background: linear-gradient(90deg,#f59e0b,#d97706);">
+                            <i class="fas fa-clock" style="margin-right:6px;"></i> View Verification Status
+                        </a>
+                        {% else %}
+                        <a href="/request-verification" class="action-btn" style="margin-top:10px; display:block; text-align:center; text-decoration:none; background: linear-gradient(90deg,#667eea,#764ba2);">
+                            <i class="fas fa-shield-alt" style="margin-right:6px;"></i> Verify My Identity
+                        </a>
+                        {% endif %}
+
                     {% else %}
-                        <!-- 3 Selection Options -->
+                        <!-- Verified User: Show booking options -->
                         <div class="booking-options">
                             <div class="option-item" onclick="selectOption(this, 'lock', 15)">
                                 <div class="option-info">
@@ -403,17 +434,13 @@
                             </div>
                         </div>
                         
-                        <!-- Placeholder Action (Visible before clicking an option) -->
                         <div id="initial-action">
                             <button class="action-btn" onclick="triggerDefaultOption()">
                                 View Payment Options
                             </button>
                         </div>
 
-                        <!-- Dynamic Payment Section (Hidden until clicked) -->
                         <div id="payment-section" style="display:none;">
-                            
-                            <!-- Breakdown -->
                             <div class="payment-breakdown">
                                 <div class="flex-between">
                                     <span>Selected Amount</span>
@@ -428,8 +455,6 @@
                                     <span id="summary-total" style="color:var(--primary);">₹0</span>
                                 </div>
                             </div>
-
-                            <!-- Payment Methods -->
                             <h5 style="font-size: 0.85rem; margin-bottom: 6px; font-weight:700; color:var(--dark);">Select Payment Method</h5>
                             <div class="payment-methods-grid">
                                 <label class="pm-option selected" onclick="selectPm(this)">
@@ -445,25 +470,19 @@
                                     <i class="fas fa-university"></i> Net Bank
                                 </label>
                             </div>
-                            
-                            <!-- UPI Badges (Decoration) -->
                             <div class="upi-badges">
                                 <div class="upi-badge"><i class="fab fa-google-pay"></i> GPay</div>
                                 <div class="upi-badge"><i class="fas fa-wallet"></i> PhonePe</div>
                                 <div class="upi-badge"><i class="fas fa-rupee-sign"></i> BHIM</div>
                             </div>
-
-                            <!-- Actual Form (Hidden logic handled by Razorpay script) -->
                             <form id="booking-form" action="/book/{{ room.id }}" method="POST">
                                 <input type="hidden" name="booking_type" id="input-booking-type" value="lock_rent">
                                 <input type="hidden" name="amount" id="input-amount" value="0">
-                                
                                 <button type="button" class="action-btn" onclick="startRazorpayPayment(event)">
                                     Pay Now <span id="btn-total-text" style="margin-left:5px;"></span>
                                 </button>
                             </form>
                         </div>
-                        
                         <div class="no-charge" id="no-charge-text">No payment processing on click</div>
                     {% endif %}
                     
